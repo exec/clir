@@ -203,14 +203,18 @@ def auto_theme() -> None:
 
 
 def _apply_theme(name: str) -> None:
-    """Apply a theme based on terminal capability."""
-    global console
+    """Apply a theme based on terminal capability.
+
+    Rebuilds both the stdout and stderr consoles so they always share a theme.
+    """
+    global console, _stderr_console
 
     theme_colors = _THEME_COLORS.get(name, _THEME_COLORS["default"])
     colors = theme_colors.get(TERMINAL_CAPABILITY, theme_colors["basic"])
 
     _custom_theme = Theme(colors)
     console = Console(theme=_custom_theme)
+    _stderr_console = Console(theme=_custom_theme, stderr=True)
 
 
 def get_theme() -> str:
@@ -293,6 +297,15 @@ def get_console() -> Console:
     reference will miss subsequent theme changes.
     """
     return console
+
+
+def get_stderr_console() -> Console:
+    """Get the current stderr console instance.
+
+    Like get_console(), always call this instead of importing _stderr_console
+    directly — the instance is replaced when set_theme is called.
+    """
+    return _stderr_console
 
 
 # Initialize with default theme
