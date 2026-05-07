@@ -99,7 +99,7 @@ def test_unknown_exception_with_debug_flag_shows_traceback():
         app = _build_app(raises=RuntimeError("kaboom"))
         result = CliRunner(app).invoke(["--debug", "boom"])
         assert result.exit_code == 1
-        assert "Traceback" in result.error or "kaboom" in result.error
+        assert "Traceback" in result.error
     finally:
         set_verbosity(Verbosity())
 

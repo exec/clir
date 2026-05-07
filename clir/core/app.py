@@ -359,7 +359,6 @@ class ClirApp:
         unknown exceptions, with the full traceback shown only when --debug
         is set.
         """
-        import sys
         import traceback
         from clir.errors import ClirError
         from clir.output import error as print_error
