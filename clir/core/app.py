@@ -95,11 +95,19 @@ class ClirApp:
             argv with global flags removed
         """
         # Find where command starts (first non-flag arg or --)
-        command_start = 0
+        command_start = len(argv)
+        skip = False
         for i, arg in enumerate(argv):
+            if skip:
+                skip = False
+                continue
             if arg == "--":
                 command_start = i + 1
                 break
+            # --search consumes the next arg as its value
+            if arg == "--search" and i + 1 < len(argv):
+                skip = True
+                continue
             # Stop at first positional argument (not starting with -)
             if not arg.startswith("-"):
                 command_start = i
@@ -243,6 +251,12 @@ class ClirApp:
                 print(f"{self.name} (no version set)")
             return
 
+        # Check for --search flag (with or without --help)
+        # Must precede the empty-argv default since --search is a consumed global flag.
+        if self._search:
+            self._print_help(self._search)
+            return
+
         if not argv and self._default_command:
             # Run default command with no args
             asyncio.run(self._run_command(self._default_command, {}))
@@ -250,11 +264,6 @@ class ClirApp:
 
         if not argv:
             self._print_help()
-            return
-
-        # Check for --search flag (with or without --help)
-        if self._search:
-            self._print_help(self._search)
             return
 
         # Check for --help at app level

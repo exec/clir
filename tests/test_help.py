@@ -182,3 +182,24 @@ def test_command_help_under_group_uses_parent_path():
     cmd = app.commands["db"].commands["migrate"]
     out = _capture_render(cmd, app_name="myapp", parent_path="db")
     assert "myapp db migrate" in out
+
+
+def test_app_print_help_with_search_query():
+    from clir.testing import CliRunner
+
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    def alpha():
+        """First."""
+        pass
+
+    @app.command()
+    def beta():
+        """Second."""
+        pass
+
+    runner = CliRunner(app)
+    result = runner.invoke(["--search", "alph"])
+    assert "alpha" in result.output
+    assert "beta" not in result.output
