@@ -172,3 +172,30 @@ def test_error_and_warning_go_to_stderr_not_stdout():
     assert "warn-line" not in stdout.getvalue()
     assert "err-line" in stderr.getvalue()
     assert "warn-line" in stderr.getvalue()
+
+
+def test_parse_global_flags_sets_verbosity():
+    from clir import ClirApp
+    from clir.runtime import get_verbosity, set_verbosity, Verbosity
+
+    set_verbosity(Verbosity())  # baseline
+    app = ClirApp(name="x")
+    rest = app._parse_global_flags(["--quiet", "--debug", "cmd", "arg"])
+    v = get_verbosity()
+    assert v.quiet is True
+    assert v.debug is True
+    assert v.verbose is True  # --debug implies --verbose per existing logic
+    assert rest == ["cmd", "arg"]
+    set_verbosity(Verbosity())
+
+
+def test_parse_global_flags_no_flags_leaves_default_verbosity():
+    from clir import ClirApp
+    from clir.runtime import get_verbosity, set_verbosity, Verbosity
+
+    set_verbosity(Verbosity())
+    app = ClirApp(name="x")
+    rest = app._parse_global_flags(["cmd", "arg"])
+    v = get_verbosity()
+    assert v == Verbosity()
+    assert rest == ["cmd", "arg"]

@@ -150,6 +150,9 @@ class ClirApp:
             else:
                 new_argv.append(arg)
 
+        from clir.runtime import set_verbosity, Verbosity
+        set_verbosity(Verbosity(quiet=self._quiet, verbose=self._verbose, debug=self._debug))
+
         return new_argv
 
     @property
