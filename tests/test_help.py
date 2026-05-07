@@ -76,3 +76,55 @@ def test_app_help_with_search_no_matches():
 
     out = _capture_render(app, app_name="myapp", search="zzz")
     assert "No commands found matching" in out
+
+
+def test_group_help_includes_subcommands():
+    app = ClirApp(name="myapp")
+
+    @app.group()
+    def db():
+        """Database commands."""
+        pass
+
+    @db.command()
+    def migrate():
+        """Run migrations."""
+        pass
+
+    @db.command()
+    def seed():
+        """Seed data."""
+        pass
+
+    group = app.commands["db"]
+    out = _capture_render(group, app_name="myapp")
+    assert "Usage:" in out
+    assert "myapp db" in out
+    assert "Database commands." in out
+    assert "migrate" in out
+    assert "seed" in out
+    assert "Run migrations." in out
+
+
+def test_nested_group_uses_parent_path():
+    app = ClirApp(name="myapp")
+
+    @app.group()
+    def db():
+        """Database."""
+        pass
+
+    @db.group()
+    def migrate():
+        """Migrations."""
+        pass
+
+    @migrate.command()
+    def up():
+        """Run up migrations."""
+        pass
+
+    nested = app.commands["db"].commands["migrate"]
+    out = _capture_render(nested, app_name="myapp", parent_path="db")
+    assert "myapp db migrate" in out
+    assert "up" in out

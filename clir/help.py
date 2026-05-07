@@ -34,9 +34,14 @@ def render_help(
     """
     # Lazy imports to avoid a cycle (clir.help is imported from app.py)
     from clir.core.app import ClirApp
+    from clir.core.group import Group
 
     if isinstance(target, ClirApp):
         _render_app(target, app_name=app_name, search=search)
+        return
+
+    if isinstance(target, Group):
+        _render_group(target, app_name=app_name, parent_path=parent_path)
         return
 
     raise NotImplementedError(
@@ -76,3 +81,25 @@ def _render_app(app: "ClirApp", *, app_name: str, search: str | None) -> None:
         console.print(table)
         console.print()
         console.print(f"Run '{app_name} <command> --help' for more info on a command.")
+
+
+def _render_group(group: "Group", *, app_name: str, parent_path: str) -> None:
+    console = get_console()
+    breadcrumb = " ".join(p for p in (app_name, parent_path, group.name) if p)
+    console.print(f"[bold]Usage:[/bold] {breadcrumb} [command] [options]")
+    console.print()
+
+    if group.help:
+        console.print(group.help)
+        console.print()
+
+    if group.commands:
+        console.print("[bold]Commands:[/bold]")
+        table = Table(show_header=False, box=None, padding=(0, 1))
+        table.add_column("name", style="cyan")
+        table.add_column("help", style="dim")
+        for name, cmd in group.commands.items():
+            table.add_row(f"  {name}", cmd.help or "")
+        console.print(table)
+        console.print()
+        console.print(f"Run '{breadcrumb} <command> --help' for more info on a command.")
