@@ -4,7 +4,7 @@ from rich.console import Console
 from clir.output.style import (
     success, error, warning, info, debug, echo,
     set_theme, get_theme, get_available_themes, get_terminal_capability,
-    get_console, THEMES, json, print_json,
+    get_console, get_stderr_console, THEMES, json, print_json,
 )
 from clir.output.table import Table
 from clir.output.progress import Progress
@@ -38,5 +38,6 @@ __all__ = [
     "get_available_themes",
     "get_terminal_capability",
     "get_console",
+    "get_stderr_console",
     "THEMES",
 ]

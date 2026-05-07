@@ -88,3 +88,87 @@ def test_stderr_console_writes_to_stderr_stream():
     # rich's Console with stderr=True writes to sys.stderr
     import sys
     assert c.file is sys.stderr
+
+
+import io
+from unittest.mock import patch
+
+from clir.runtime import Verbosity, set_verbosity
+
+
+def _capture_streams():
+    """Patch the stdout and stderr consoles to write to StringIOs we can read.
+
+    Returns (stdout_buf, stderr_buf, patches_to_exit).
+    """
+    from rich.console import Console
+    from clir.output import style
+
+    stdout_buf = io.StringIO()
+    stderr_buf = io.StringIO()
+    new_stdout = Console(file=stdout_buf, force_terminal=False)
+    new_stderr = Console(file=stderr_buf, force_terminal=False)
+
+    p_stdout = patch.object(style, "console", new_stdout)
+    p_stderr = patch.object(style, "_stderr_console", new_stderr)
+    return stdout_buf, stderr_buf, p_stdout, p_stderr
+
+
+def test_quiet_suppresses_success_info_warning_but_not_error():
+    set_verbosity(Verbosity(quiet=True))
+    stdout, stderr, p_out, p_err = _capture_streams()
+    with p_out, p_err:
+        from clir.output.style import success, info, warning, error, echo
+        success("hello-success")
+        info("hello-info")
+        warning("hello-warning")
+        error("hello-error")
+        echo("hello-echo")
+    assert "hello-success" not in stdout.getvalue()
+    assert "hello-info" not in stdout.getvalue()
+    assert "hello-warning" not in stderr.getvalue()
+    assert "hello-error" in stderr.getvalue()
+    assert "hello-echo" in stdout.getvalue()
+    set_verbosity(Verbosity())
+
+
+def test_default_verbosity_suppresses_only_debug():
+    set_verbosity(Verbosity())
+    stdout, stderr, p_out, p_err = _capture_streams()
+    with p_out, p_err:
+        from clir.output.style import success, info, warning, error, debug, echo
+        success("a-success")
+        info("a-info")
+        warning("a-warning")
+        error("a-error")
+        debug("a-debug")
+        echo("a-echo")
+    assert "a-success" in stdout.getvalue()
+    assert "a-info" in stdout.getvalue()
+    assert "a-warning" in stderr.getvalue()
+    assert "a-error" in stderr.getvalue()
+    assert "a-debug" not in stderr.getvalue()
+    assert "a-echo" in stdout.getvalue()
+
+
+def test_debug_flag_enables_debug_output():
+    set_verbosity(Verbosity(debug=True))
+    stdout, stderr, p_out, p_err = _capture_streams()
+    with p_out, p_err:
+        from clir.output.style import debug
+        debug("d-line")
+    assert "d-line" in stderr.getvalue()
+    set_verbosity(Verbosity())
+
+
+def test_error_and_warning_go_to_stderr_not_stdout():
+    set_verbosity(Verbosity())
+    stdout, stderr, p_out, p_err = _capture_streams()
+    with p_out, p_err:
+        from clir.output.style import error, warning
+        error("err-line")
+        warning("warn-line")
+    assert "err-line" not in stdout.getvalue()
+    assert "warn-line" not in stdout.getvalue()
+    assert "err-line" in stderr.getvalue()
+    assert "warn-line" in stderr.getvalue()

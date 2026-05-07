@@ -62,7 +62,8 @@ def test_command_with_long_option(app):
     result = runner.invoke(["status", "--verbose"])
 
     assert result.success
-    assert "Verbose mode" in result.output
+    # error() now routes to stderr
+    assert "Verbose mode" in result.error
 
 
 def test_command_with_short_option(app):
@@ -71,7 +72,8 @@ def test_command_with_short_option(app):
     result = runner.invoke(["status", "-v"])
 
     assert result.success
-    assert "Verbose mode" in result.output
+    # error() now routes to stderr
+    assert "Verbose mode" in result.error
 
 
 def test_command_with_context(app):

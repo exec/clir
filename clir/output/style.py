@@ -313,33 +313,45 @@ _apply_theme("default")
 
 
 def echo(*objects: object, sep: str = " ", end: str = "\n") -> None:
-    """Print styled output."""
+    """Print styled output. Always shown — user's escape hatch."""
     console.print(*objects, sep=sep, end=end)
 
 
 def success(*objects: object, sep: str = " ") -> None:
-    """Print success message."""
+    """Print success message to stdout. Suppressed by --quiet."""
+    from clir.runtime import get_verbosity
+    if get_verbosity().quiet:
+        return
     console.print("[success]", *objects, sep=sep)
 
 
-def error(*objects: object, sep: str = " ") -> None:
-    """Print error message."""
-    console.print("[error]", *objects, sep=sep)
-
-
-def warning(*objects: object, sep: str = " ") -> None:
-    """Print warning message."""
-    console.print("[warning]", *objects, sep=sep)
-
-
 def info(*objects: object, sep: str = " ") -> None:
-    """Print info message."""
+    """Print info message to stdout. Suppressed by --quiet."""
+    from clir.runtime import get_verbosity
+    if get_verbosity().quiet:
+        return
     console.print("[info]", *objects, sep=sep)
 
 
+def warning(*objects: object, sep: str = " ") -> None:
+    """Print warning message to stderr. Suppressed by --quiet."""
+    from clir.runtime import get_verbosity
+    if get_verbosity().quiet:
+        return
+    _stderr_console.print("[warning]", *objects, sep=sep)
+
+
+def error(*objects: object, sep: str = " ") -> None:
+    """Print error message to stderr. Always shown."""
+    _stderr_console.print("[error]", *objects, sep=sep)
+
+
 def debug(*objects: object, sep: str = " ") -> None:
-    """Print debug message."""
-    console.print("[debug]", *objects, sep=sep)
+    """Print debug message to stderr. Only shown when --debug is set."""
+    from clir.runtime import get_verbosity
+    if not get_verbosity().debug:
+        return
+    _stderr_console.print("[debug]", *objects, sep=sep)
 
 
 def json(data: Any, indent: int = 2, sort_keys: bool = False) -> None:

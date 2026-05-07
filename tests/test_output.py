@@ -26,16 +26,16 @@ class TestStyle:
         assert "Operation completed" in captured.out
 
     def test_error(self, capsys):
-        """Test error outputs styled text."""
+        """Test error outputs styled text to stderr."""
         error("Something went wrong")
         captured = capsys.readouterr()
-        assert "Something went wrong" in captured.out
+        assert "Something went wrong" in captured.err
 
     def test_warning(self, capsys):
-        """Test warning outputs styled text."""
+        """Test warning outputs styled text to stderr."""
         warning("This is a warning")
         captured = capsys.readouterr()
-        assert "This is a warning" in captured.out
+        assert "This is a warning" in captured.err
 
     def test_info(self, capsys):
         """Test info outputs styled text."""
@@ -44,10 +44,15 @@ class TestStyle:
         assert "Some information" in captured.out
 
     def test_debug(self, capsys):
-        """Test debug outputs styled text."""
-        debug("Debug message")
-        captured = capsys.readouterr()
-        assert "Debug message" in captured.out
+        """Test debug outputs styled text to stderr when --debug is enabled."""
+        from clir.runtime import Verbosity, set_verbosity
+        set_verbosity(Verbosity(debug=True))
+        try:
+            debug("Debug message")
+            captured = capsys.readouterr()
+            assert "Debug message" in captured.err
+        finally:
+            set_verbosity(Verbosity())
 
 
 class TestSpinner:
