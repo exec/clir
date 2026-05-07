@@ -184,6 +184,24 @@ def test_command_help_under_group_uses_parent_path():
     assert "myapp db migrate" in out
 
 
+def test_app_print_help_routes_through_render_help():
+    """ClirApp._print_help is now a thin wrapper over render_help."""
+    from clir.testing import CliRunner
+
+    app = ClirApp(name="myapp", description="hi")
+
+    @app.command()
+    def hello():
+        """Say hi."""
+        pass
+
+    runner = CliRunner(app)
+    result = runner.invoke([])  # No args: should print app help
+    assert "Commands:" in result.output
+    assert "hello" in result.output
+    assert "Say hi." in result.output
+
+
 def test_app_print_help_with_search_query():
     from clir.testing import CliRunner
 

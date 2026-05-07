@@ -553,49 +553,9 @@ class ClirApp:
         return best_match
 
     def _print_help(self, search_query: str | None = None) -> None:
-        """Print help message.
-
-        Args:
-            search_query: Optional search term to filter commands
-        """
-        from rich.console import Console
-        from rich.table import Table
-
-        console = Console()
-        console.print(f"[bold]Usage:[/bold] {self.name} [command] [options]")
-        console.print()
-
-        if self.description:
-            console.print(self.description)
-            console.print()
-
-        if self.commands:
-            # Filter commands if search_query is provided
-            filtered_commands = self.commands
-            if search_query:
-                query = search_query.lower()
-                filtered_commands = {
-                    name: cmd for name, cmd in self.commands.items()
-                    if query in name.lower() or (cmd.help and query in cmd.help.lower())
-                }
-
-            if filtered_commands:
-                console.print("[bold]Commands:[/bold]")
-                table = Table(show_header=False, box=None, padding=(0, 1))
-                table.add_column("name", style="cyan")
-                table.add_column("help", style="dim")
-
-                for name, cmd in filtered_commands.items():
-                    table.add_row(f"  {name}", cmd.help or "")
-
-                console.print(table)
-                console.print()
-
-            if search_query and not filtered_commands:
-                console.print(f"[yellow]No commands found matching '{search_query}'[/yellow]")
-                console.print()
-
-            console.print(f"Run '{self.name} <command> --help' for more info on a command.")
+        """Print help message via the unified render_help renderer."""
+        from clir.help import render_help
+        render_help(self, app_name=self.name, search=search_query)
 
     def generate_completion(self, shell: str) -> str:
         """Generate shell completion script.
