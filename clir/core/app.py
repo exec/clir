@@ -16,6 +16,42 @@ from clir.aliases import AliasManager
 from clir.hooks import Hooks
 
 
+class ClirHelpAction(argparse.Action):
+    """Custom argparse Action that routes --help through render_help and exits.
+
+    Replaces argparse's built-in -h/--help so that all help surfaces use the
+    same rich-styled renderer.
+    """
+
+    def __init__(
+        self,
+        option_strings: list[str],
+        dest: str = argparse.SUPPRESS,
+        default: object = argparse.SUPPRESS,
+        help: str | None = None,
+        *,
+        app_name: str,
+        target: object,
+        parent_path: str = "",
+    ):
+        super().__init__(
+            option_strings=option_strings,
+            dest=dest,
+            default=default,
+            nargs=0,
+            help=help,
+        )
+        self._app_name = app_name
+        self._target = target
+        self._parent_path = parent_path
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        from clir.help import render_help
+        render_help(self._target, app_name=self._app_name, parent_path=self._parent_path)
+        import sys
+        sys.exit(0)
+
+
 class ClirApp:
     """Main CLI application class."""
 
@@ -306,17 +342,20 @@ class ClirApp:
             self._print_help()
             sys.exit(1)
 
-    def _run_group_command(self, group: Group, argv: list[str]) -> None:
+    def _run_group_command(self, group: Group, argv: list[str], parent_path: str = "") -> None:
         """Recursively run a group command, handling nested groups.
 
         Args:
             group: The group to run
             argv: Remaining command-line arguments after the group name
+            parent_path: Breadcrumb of parent groups (e.g. "db" when this is "migrate" under db)
         """
-        # Check for --help
-        if "--help" in argv or "-h" in argv:
+        # Only short-circuit when --help/-h is the FIRST arg (i.e. user wants
+        # help for THIS group). Otherwise, let recursion or ClirHelpAction
+        # route help to the correct nested target.
+        if argv and argv[0] in ("--help", "-h"):
             from clir.help import render_help
-            render_help(group, app_name=self.name, parent_path="")
+            render_help(group, app_name=self.name, parent_path=parent_path)
             return
 
         if not argv:
@@ -335,15 +374,19 @@ class ClirApp:
 
         if isinstance(subcmd, Group):
             # Nested group - recursively handle
-            self._run_group_command(subcmd, argv[1:])
+            child_parent_path = f"{parent_path} {group.name}".strip()
+            self._run_group_command(subcmd, argv[1:], parent_path=child_parent_path)
         else:
             # Regular command under this group
             # Create parser for this group's subcommands
+            group_prog = f"{self.name} {parent_path} {group.name}".replace("  ", " ").strip()
             group_parser = argparse.ArgumentParser(
-                prog=f"{self.name} {group.name}",
+                prog=group_prog,
                 description=group.help,
+                add_help=False,
             )
-            self._populate_subparsers(group_parser, group.commands)
+            sub_parent_path = f"{parent_path} {group.name}".strip()
+            self._populate_subparsers(group_parser, group.commands, parent_path=sub_parent_path)
 
             parsed = vars(group_parser.parse_args(argv))
             try:
@@ -463,13 +506,12 @@ class ClirApp:
         parser: argparse.ArgumentParser,
         commands: dict[str, "Command | Group"],
         dest: str = "subcommand",
+        parent_path: str = "",
     ) -> None:
         """Add subparsers to parser for the given commands, recursing into Groups.
 
-        Args:
-            parser: The argparse parser to add subparsers to
-            commands: Dict of command name → Command or Group
-            dest: The argparse dest attribute for the subparser selector
+        Each sub-parser has argparse's built-in --help disabled and a
+        ClirHelpAction registered instead, so --help renders via render_help.
         """
         if not commands:
             return
@@ -477,17 +519,33 @@ class ClirApp:
         subparsers = parser.add_subparsers(dest=dest)
 
         for cmd_name, cmd in commands.items():
-            sub = subparsers.add_parser(cmd_name, help=cmd.help)
+            sub = subparsers.add_parser(cmd_name, help=cmd.help, add_help=False)
+            sub.add_argument(
+                "-h", "--help",
+                action=ClirHelpAction,
+                app_name=self.name,
+                target=cmd,
+                parent_path=parent_path,
+            )
             if isinstance(cmd, Group):
-                self._populate_subparsers(sub, cmd.commands)
+                child_path = f"{parent_path} {cmd_name}".strip()
+                self._populate_subparsers(sub, cmd.commands, parent_path=child_path)
             else:
                 self._add_command_params(sub, cmd, reverse_args=True)
 
     def _parse_args(self, argv: list[str]) -> dict[str, Any]:
-        """Parse command-line arguments."""
+        """Parse command-line arguments.
+
+        The top-level parser's --help is intercepted earlier in `run`
+        (it short-circuits to render_help before reaching here), so we
+        disable argparse's built-in help on the top-level parser too —
+        otherwise an unrecognized --help between command names would
+        trigger argparse's default formatter.
+        """
         parser = argparse.ArgumentParser(
             prog=self.name,
             description=self.description,
+            add_help=False,
         )
         self._populate_subparsers(parser, self.commands, dest="command")
         return vars(parser.parse_args(argv))

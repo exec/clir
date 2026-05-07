@@ -247,3 +247,49 @@ def test_group_help_via_cli_runner_uses_render_help():
     assert "Commands:" in result.output
     assert "migrate" in result.output
     assert "Run migrations." in result.output
+
+
+def test_command_help_via_cli_runner_uses_render_help():
+    """Running `app cmd --help` routes through render_help."""
+    from clir.testing import CliRunner
+    from clir import argument, option
+
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    @argument("name")
+    @option("--loud", default=False)
+    def greet(name: str, loud: bool):
+        """Greet someone."""
+        pass
+
+    runner = CliRunner(app)
+    result = runner.invoke(["greet", "--help"])
+    # render_help-specific markers
+    assert "Usage:" in result.output
+    assert "myapp greet" in result.output
+    assert "Greet someone." in result.output
+    assert "Arguments:" in result.output or "name" in result.output
+    assert "--loud" in result.output
+
+
+def test_subcommand_under_group_help_uses_render_help():
+    from clir.testing import CliRunner
+
+    app = ClirApp(name="myapp")
+
+    @app.group()
+    def db():
+        """DB."""
+        pass
+
+    @db.command()
+    def migrate():
+        """Migrate."""
+        pass
+
+    runner = CliRunner(app)
+    result = runner.invoke(["db", "migrate", "--help"])
+    assert "Usage:" in result.output
+    assert "migrate" in result.output
+    assert "Migrate." in result.output
