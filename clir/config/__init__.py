@@ -10,6 +10,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from clir.errors import ClirError
+
 # Optional imports - these are optional dependencies
 _yaml_available = False
 _toml_available = False
@@ -33,7 +35,7 @@ except ImportError:
         pass
 
 
-class ConfigError(Exception):
+class ConfigError(ClirError):
     """Error loading or parsing config file."""
     pass
 

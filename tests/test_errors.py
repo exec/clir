@@ -31,3 +31,12 @@ def test_usage_error_inherits_from_clir_error():
 def test_clir_error_is_an_exception():
     with pytest.raises(ClirError):
         raise ClirError("boom")
+
+
+def test_config_error_inherits_from_clir_error():
+    from clir.config import ConfigError
+    assert issubclass(ConfigError, ClirError)
+    err = ConfigError("bad config")
+    assert err.exit_code == 1
+    assert isinstance(err, ClirError)
+    assert isinstance(err, Exception)
