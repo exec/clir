@@ -221,3 +221,29 @@ def test_app_print_help_with_search_query():
     result = runner.invoke(["--search", "alph"])
     assert "alpha" in result.output
     assert "beta" not in result.output
+
+
+def test_group_help_via_cli_runner_uses_render_help():
+    """Running `app group --help` goes through render_help, not argparse default."""
+    from clir.testing import CliRunner
+
+    app = ClirApp(name="myapp")
+
+    @app.group()
+    def db():
+        """Database commands."""
+        pass
+
+    @db.command()
+    def migrate():
+        """Run migrations."""
+        pass
+
+    runner = CliRunner(app)
+    result = runner.invoke(["db", "--help"])
+    # render_help-specific markers
+    assert "myapp db" in result.output
+    assert "Database commands." in result.output
+    assert "Commands:" in result.output
+    assert "migrate" in result.output
+    assert "Run migrations." in result.output

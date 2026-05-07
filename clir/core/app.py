@@ -315,13 +315,8 @@ class ClirApp:
         """
         # Check for --help
         if "--help" in argv or "-h" in argv:
-            # Show help for this group
-            group_parser = argparse.ArgumentParser(
-                prog=f"{self.name} {group.name}",
-                description=group.help,
-            )
-            self._populate_subparsers(group_parser, group.commands)
-            group_parser.parse_args(argv)  # This will print help and exit
+            from clir.help import render_help
+            render_help(group, app_name=self.name, parent_path="")
             return
 
         if not argv:
