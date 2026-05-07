@@ -19,6 +19,7 @@ from clir.prompts import prompt, password, confirm, confirm_password, select, mu
 from clir.completion import generate_completion, detect_shell
 from clir.config import load_config, get_config, save_config, ConfigError
 from clir.validation import CLIValidator, validator
+from clir.errors import ClirError, UsageError
 from pydantic import BaseModel, Field, ValidationError
 
 __version__ = "0.1.0"
@@ -67,4 +68,6 @@ __all__ = [
     "ValidationError",
     "BaseModel",
     "Field",
+    "ClirError",
+    "UsageError",
 ]

@@ -120,3 +120,11 @@ def test_pydantic_validation_error_exit_2_per_field():
     result = CliRunner(app).invoke(["boom"])
     assert result.exit_code == 2
     assert "x" in result.error
+
+
+def test_clir_error_is_re_exported_from_top_level():
+    import clir
+    assert hasattr(clir, "ClirError")
+    assert hasattr(clir, "UsageError")
+    assert clir.ClirError is ClirError
+    assert clir.UsageError is UsageError
