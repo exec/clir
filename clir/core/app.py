@@ -271,7 +271,18 @@ class ClirApp:
         return self._default_command
 
     def run(self, argv: list[str] | None = None) -> None:
-        """Run the CLI application."""
+        """Run the CLI application synchronously.
+
+        Thin wrapper around run_async. Async callers should use run_async
+        directly to avoid the asyncio.run() loop creation.
+        """
+        asyncio.run(self.run_async(argv))
+
+    async def run_async(self, argv: list[str] | None = None) -> None:
+        """Run the CLI application asynchronously.
+
+        All dispatch logic lives here; ClirApp.run wraps this in asyncio.run.
+        """
         # Use sys.argv[1:] only when argv is None, not when it's an empty list
         if argv is None:
             argv = sys.argv[1:]
@@ -295,7 +306,7 @@ class ClirApp:
 
         if not argv and self._default_command:
             # Run default command with no args
-            asyncio.run(self._run_command(self._default_command, {}))
+            await self._run_command(self._default_command, {})
             return
 
         if not argv:
@@ -326,12 +337,12 @@ class ClirApp:
         if cmd:
             if isinstance(cmd, Group):
                 # This is a group - recursively parse nested subcommands
-                self._run_group_command(cmd, argv[1:])
+                await self._run_group_command(cmd, argv[1:])
             else:
                 # Regular command
                 parsed = self._parse_args(argv)
                 parsed.pop("command", None)
-                asyncio.run(self._run_command(cmd, parsed, parent=None))
+                await self._run_command(cmd, parsed, parent=None)
         else:
             # Check for typo suggestion
             suggestion = self._suggest_command(first_arg)
@@ -342,8 +353,8 @@ class ClirApp:
             self._print_help()
             sys.exit(1)
 
-    def _run_group_command(self, group: Group, argv: list[str], parent_path: str = "") -> None:
-        """Recursively run a group command, handling nested groups.
+    async def _run_group_command(self, group: Group, argv: list[str], parent_path: str = "") -> None:
+        """Recursively run a group command, handling nested groups (async).
 
         Args:
             group: The group to run
@@ -375,7 +386,7 @@ class ClirApp:
         if isinstance(subcmd, Group):
             # Nested group - recursively handle
             child_parent_path = f"{parent_path} {group.name}".strip()
-            self._run_group_command(subcmd, argv[1:], parent_path=child_parent_path)
+            await self._run_group_command(subcmd, argv[1:], parent_path=child_parent_path)
         else:
             # Regular command under this group
             # Create parser for this group's subcommands
@@ -390,7 +401,7 @@ class ClirApp:
 
             parsed = vars(group_parser.parse_args(argv))
             try:
-                asyncio.run(group.run(parsed, parent=None))
+                await group.run(parsed, parent=None)
             except (Exception, KeyboardInterrupt) as e:
                 self._handle_exception(e)
 
