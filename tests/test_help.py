@@ -128,3 +128,57 @@ def test_nested_group_uses_parent_path():
     out = _capture_render(nested, app_name="myapp", parent_path="db")
     assert "myapp db migrate" in out
     assert "up" in out
+
+
+def test_command_help_includes_options_and_args():
+    from clir import argument, option
+
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    @argument("name")
+    @option("--count", "-c", default=1)
+    def greet(name: str, count: int):
+        """Greet someone."""
+        pass
+
+    cmd = app.commands["greet"]
+    out = _capture_render(cmd, app_name="myapp")
+    assert "Usage:" in out
+    assert "myapp greet" in out
+    assert "Greet someone." in out
+    # Argument and option appear
+    assert "name" in out
+    assert "--count" in out
+
+
+def test_command_help_with_no_params_still_renders():
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    def ping():
+        """Just ping."""
+        pass
+
+    cmd = app.commands["ping"]
+    out = _capture_render(cmd, app_name="myapp")
+    assert "myapp ping" in out
+    assert "Just ping." in out
+
+
+def test_command_help_under_group_uses_parent_path():
+    app = ClirApp(name="myapp")
+
+    @app.group()
+    def db():
+        """DB."""
+        pass
+
+    @db.command()
+    def migrate():
+        """Migrate."""
+        pass
+
+    cmd = app.commands["db"].commands["migrate"]
+    out = _capture_render(cmd, app_name="myapp", parent_path="db")
+    assert "myapp db migrate" in out
