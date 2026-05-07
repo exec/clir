@@ -7,7 +7,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, NoReturn
 
 from clir.core.command import Command
 from clir.core.context import Context
@@ -348,9 +348,49 @@ class ClirApp:
             parsed = vars(group_parser.parse_args(argv))
             try:
                 asyncio.run(group.run(parsed, parent=None))
-            except Exception as e:
-                print(f"Error: {e}", file=sys.stderr)
-                sys.exit(1)
+            except (Exception, KeyboardInterrupt) as e:
+                self._handle_exception(e)
+
+    def _handle_exception(self, exc: BaseException) -> "NoReturn":
+        """Centralized exception handler.
+
+        Always exits the process. Special-cases ClirError, KeyboardInterrupt,
+        and pydantic ValidationError. Falls back to a short error line for
+        unknown exceptions, with the full traceback shown only when --debug
+        is set.
+        """
+        import sys
+        import traceback
+        from clir.errors import ClirError
+        from clir.output import error as print_error
+        from clir.runtime import get_verbosity
+
+        try:
+            from pydantic import ValidationError as PydanticValidationError
+        except ImportError:  # pragma: no cover
+            PydanticValidationError = None  # type: ignore[assignment]
+
+        if isinstance(exc, KeyboardInterrupt):
+            print("Aborted.", file=sys.stderr)
+            sys.exit(130)
+
+        if isinstance(exc, ClirError):
+            print_error(exc.message)
+            sys.exit(exc.exit_code)
+
+        if PydanticValidationError is not None and isinstance(exc, PydanticValidationError):
+            for err in exc.errors():
+                loc = ".".join(str(p) for p in err["loc"])
+                print_error(f"{loc}: {err['msg']}")
+            sys.exit(2)
+
+        # Unknown exception
+        if get_verbosity().debug:
+            traceback.print_exc()
+        else:
+            print_error(f"{type(exc).__name__}: {exc}")
+            print("Run with --debug to see the full traceback.", file=sys.stderr)
+        sys.exit(1)
 
     async def _run_command(
         self, cmd: Command | Group, args: dict[str, Any], parent: Context | None = None
@@ -366,9 +406,8 @@ class ClirApp:
                     print(json.dumps(result, indent=2, default=str))
                 else:
                     print(json.dumps(result, default=str))
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
+        except (Exception, KeyboardInterrupt) as e:
+            self._handle_exception(e)
 
     def _add_command_params(
         self,
