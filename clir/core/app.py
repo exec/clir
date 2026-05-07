@@ -135,9 +135,6 @@ class ClirApp:
             elif arg == "--search" and i + 1 < len(pre_command):
                 self._search = pre_command[i + 1]
                 skip_next = True
-            elif arg.startswith("--debug="):
-                # Let argparse handle it
-                new_argv.append(arg)
             else:
                 new_argv.append(arg)
 
@@ -168,7 +165,6 @@ class ClirApp:
         if self._alias_manager is None:
             self._alias_manager = AliasManager()
         return self._alias_manager
-        self._aliases: dict[str, str] = {}  # alias -> command mapping
 
     def register(self, cmd: Command | Group) -> None:
         """Register a command or group with the app."""
