@@ -33,3 +33,12 @@ mkdir -p "$WHEEL_DIR"
 rm -f "$WHEEL_DIR"/clir-*.whl
 cp "$WHEEL" "$WHEEL_DIR/"
 echo "Wheel: $WHEEL_DIR/$(basename "$WHEEL")"
+
+# Update the wheels-list.json so the playground can discover the filename.
+node -e "
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.resolve('$WHEEL_DIR');
+  const wheels = fs.readdirSync(dir).filter(f => f.endsWith('.whl'));
+  fs.writeFileSync(path.join(path.dirname(dir), 'wheels-list.json'), JSON.stringify({wheels}));
+"
