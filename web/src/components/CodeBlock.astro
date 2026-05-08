@@ -9,17 +9,17 @@ const { code, outputHtml, slug } = Astro.props;
 
 <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8">
   <div class="flex border-b border-ink-50/10 bg-ink-900/40">
-    <button class="tab px-4 py-2 text-sm font-medium" data-tab="output" data-slug={slug}>Output</button>
-    <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="code" data-slug={slug}>Code</button>
+    <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug={slug}>Code</button>
+    <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug={slug}>Output</button>
     <a
       href={`/playground?example=${slug}`}
       class="ml-auto px-4 py-2 text-sm hover:text-accent transition"
     >▷ Open in Playground</a>
   </div>
-  <div class="tab-panel" data-panel="output" data-slug={slug} set:html={outputHtml} />
-  <div class="tab-panel hidden" data-panel="code" data-slug={slug}>
+  <div class="tab-panel" data-panel="code" data-slug={slug}>
     <pre class="ansi"><code>{code}</code></pre>
   </div>
+  <div class="tab-panel hidden" data-panel="output" data-slug={slug} set:html={outputHtml} />
 </div>
 
 <script define:vars={{ slug }}>
