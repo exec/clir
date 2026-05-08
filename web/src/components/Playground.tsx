@@ -9,11 +9,17 @@ success("Hello from the playground!")
 info("Click Run to execute this Python in your browser.")
 `;
 
-interface Props {
-  initialCode?: string | null;
+interface ExampleEntry {
+  slug: string;
+  code: string;
 }
 
-export default function Playground({ initialCode }: Props) {
+interface Props {
+  initialCode?: string | null;
+  examples?: ExampleEntry[];
+}
+
+export default function Playground({ initialCode, examples }: Props) {
   const [code, setCode] = useState<string>(initialCode ?? DEFAULT_CODE);
   const [outputHtml, setOutputHtml] = useState<string>("");
   const [status, setStatus] = useState<string>("Ready");
@@ -22,8 +28,21 @@ export default function Playground({ initialCode }: Props) {
   const editorRef = useRef<unknown>(null);
   const runHandlerRef = useRef<() => Promise<void>>();
 
-  // Restore from URL hash or localStorage on mount.
+  // Resolve initial code from URL on mount. Priority:
+  //   1. ?example=<slug>   → look up in `examples` prop
+  //   2. #code=<base64>    → decode shared link
+  //   3. localStorage      → restore last session
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("example");
+    if (slug && examples) {
+      const found = examples.find((e) => e.slug === slug);
+      if (found) {
+        setCode(found.code);
+        return;
+      }
+    }
+
     const hash = window.location.hash;
     const m = /#code=([^&]+)/.exec(hash);
     if (m) {

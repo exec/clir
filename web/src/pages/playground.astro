@@ -1,12 +1,13 @@
 ---
 import Layout from "../components/Layout.astro";
 import Playground from "../components/Playground.tsx";
-import { loadExample } from "../lib/examples";
+import { loadAllExamples } from "../lib/examples";
 import "../styles/global.css";
 
-const url = Astro.url;
-const exampleSlug = url.searchParams.get("example") ?? null;
-const initialCode = exampleSlug ? loadExample(exampleSlug)?.code ?? null : null;
+// Pass all (slug, code) pairs to the client component so it can resolve
+// ?example=<slug> at runtime. The Astro page is rendered statically; the
+// query string is only known in the browser, not at build time.
+const examples = loadAllExamples().map((e) => ({ slug: e.slug, code: e.code }));
 ---
 
 <Layout title="clir playground">
@@ -15,6 +16,6 @@ const initialCode = exampleSlug ? loadExample(exampleSlug)?.code ?? null : null;
     <p class="opacity-70 mb-6 text-sm">
       Real Python in your browser. First run boots Pyodide and installs the clir wheel — takes a few seconds.
     </p>
-    <Playground client:load initialCode={initialCode} />
+    <Playground client:load examples={examples} />
   </section>
 </Layout>
