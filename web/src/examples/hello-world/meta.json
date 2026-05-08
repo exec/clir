@@ -1,0 +1,7 @@
+{
+  "slug": "hello-world",
+  "title": "Hello, world!",
+  "section": "Getting Started",
+  "order": 1,
+  "description": "The simplest possible clir program: print styled output."
+}
