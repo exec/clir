@@ -5,7 +5,6 @@ interface Props {
   slug: string;
 }
 const { code, outputHtml, slug } = Astro.props;
-const base = import.meta.env.BASE_URL;
 ---
 
 <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8">
@@ -13,7 +12,7 @@ const base = import.meta.env.BASE_URL;
     <button class="tab px-4 py-2 text-sm font-medium" data-tab="output" data-slug={slug}>Output</button>
     <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="code" data-slug={slug}>Code</button>
     <a
-      href={`${base}/playground?example=${slug}`}
+      href={`/playground?example=${slug}`}
       class="ml-auto px-4 py-2 text-sm hover:text-accent transition"
     >▷ Open in Playground</a>
   </div>

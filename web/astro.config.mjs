@@ -3,8 +3,7 @@ import tailwind from "@astrojs/tailwind";
 import preact from "@astrojs/preact";
 
 export default defineConfig({
-  site: "https://exec.github.io",
-  base: "/clir",
+  site: "https://clir.byexec.com",
   integrations: [tailwind(), preact()],
   output: "static",
   build: {
