@@ -69,9 +69,17 @@ export async function getPyodide(): Promise<PyodideAPI> {
       wheelFilename = candidate;
     }
 
+    // Install clir alongside its pure-Python transitive deps. micropip's
+    // dependency resolver sometimes misses deps declared deep in the chain
+    // (e.g. rich → markdown-it-py → mdurl), so we list them explicitly.
     await pyodide.runPythonAsync(`
 import micropip
-await micropip.install("${wheelDir}${wheelFilename}")
+await micropip.install([
+    "markdown-it-py",
+    "mdurl",
+    "pygments",
+    "${wheelDir}${wheelFilename}",
+])
 `);
 
     return pyodide;
