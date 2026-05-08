@@ -35,7 +35,10 @@ def _detect_terminal_capability() -> str:
             return 'truecolor'
         elif colors >= 16:
             return '256'
-    except (subprocess.SubprocessError, FileNotFoundError, ValueError):
+    except (subprocess.SubprocessError, FileNotFoundError, ValueError, OSError):
+        # OSError covers environments that lack subprocess support, e.g.
+        # Pyodide/emscripten which raises OSError(138, "emscripten does
+        # not support processes.").
         pass
 
     return 'basic'
