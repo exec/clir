@@ -1,0 +1,25 @@
+{
+  "name": "clir-site",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/prerender-docs.mjs && astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@astrojs/preact": "^4.0.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "astro": "^4.16.0",
+    "preact": "^10.24.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -7,3 +7,6 @@ venv/
 .coverage
 dist/
 build/
+web/node_modules/
+web/dist/
+web/.astro/
