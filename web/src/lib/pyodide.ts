@@ -41,7 +41,11 @@ export async function getPyodide(): Promise<PyodideAPI> {
     }
     if (!window.loadPyodide) throw new Error("loadPyodide not exposed by Pyodide bootstrap");
     const pyodide = await window.loadPyodide({ indexURL: `${PYODIDE_CDN}/` });
-    await pyodide.loadPackage(["micropip"]);
+    // Load Pyodide-bundled packages that are clir's transitive deps but
+    // aren't auto-installed by micropip when it processes the clir wheel.
+    // `wcwidth` is required by prompt_toolkit; `pydantic` has Rust extensions
+    // and is shipped with Pyodide rather than installed from PyPI.
+    await pyodide.loadPackage(["micropip", "wcwidth", "pydantic"]);
 
     // Locate the wheel relative to the site base path.
     const base = import.meta.env.BASE_URL;
