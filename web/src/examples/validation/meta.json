@@ -1,0 +1,1 @@
+{"slug": "validation", "title": "Validation", "section": "Framework", "order": 15, "description": "Pydantic validation errors are surfaced per-field via the dispatcher."}

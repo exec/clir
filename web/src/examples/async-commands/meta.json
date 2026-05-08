@@ -1,0 +1,1 @@
+{"slug": "async-commands", "title": "Async commands", "section": "Framework", "order": 13, "description": "await app.run_async() works from inside an existing event loop."}

@@ -1,0 +1,1 @@
+{"slug": "errors", "title": "Errors", "section": "Framework", "order": 14, "description": "ClirError + UsageError surface a styled message and exit code; --debug shows the traceback."}

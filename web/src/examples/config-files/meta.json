@@ -1,0 +1,1 @@
+{"slug": "config-files", "title": "Config files", "section": "Framework", "order": 16, "description": "Auto-discover and load YAML / JSON / TOML config; env-var override."}
