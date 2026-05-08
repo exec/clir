@@ -1,0 +1,24 @@
+---
+import { loadAllExamples } from "../lib/examples";
+const examples = loadAllExamples();
+const sections: Record<string, { slug: string; title: string }[]> = {};
+for (const e of examples) {
+  if (!sections[e.section]) sections[e.section] = [];
+  sections[e.section].push({ slug: e.slug, title: e.title });
+}
+---
+
+<aside class="sticky top-4 self-start text-sm">
+  <nav class="space-y-6">
+    {Object.entries(sections).map(([sectionName, items]) => (
+      <div>
+        <div class="font-semibold opacity-60 uppercase tracking-wider text-xs">{sectionName}</div>
+        <ul class="mt-2 space-y-1">
+          {items.map((it) => (
+            <li><a href={`#${it.slug}`} class="hover:text-accent transition">{it.title}</a></li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </nav>
+</aside>

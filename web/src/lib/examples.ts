@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const EXAMPLES_DIR = path.resolve(__dirname, "..", "examples");
+// Resolve relative to the web/ project root (process.cwd() during both
+// `astro build` and `vitest`). Using import.meta.url breaks at build time
+// because Astro bundles this module into dist/, where the relative path
+// to the source examples/ directory no longer holds.
+const EXAMPLES_DIR = path.resolve(process.cwd(), "src", "examples");
 
 export interface ExampleMeta {
   slug: string;

@@ -1,0 +1,36 @@
+---
+interface Props {
+  code: string;
+  outputHtml: string;
+  slug: string;
+}
+const { code, outputHtml, slug } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8">
+  <div class="flex border-b border-ink-50/10 bg-ink-900/40">
+    <button class="tab px-4 py-2 text-sm font-medium" data-tab="output" data-slug={slug}>Output</button>
+    <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="code" data-slug={slug}>Code</button>
+    <a
+      href={`${base}/playground?example=${slug}`}
+      class="ml-auto px-4 py-2 text-sm hover:text-accent transition"
+    >▷ Open in Playground</a>
+  </div>
+  <div class="tab-panel" data-panel="output" data-slug={slug} set:html={outputHtml} />
+  <div class="tab-panel hidden" data-panel="code" data-slug={slug}>
+    <pre class="ansi"><code>{code}</code></pre>
+  </div>
+</div>
+
+<script define:vars={{ slug }}>
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+</script>

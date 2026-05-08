@@ -1,0 +1,35 @@
+---
+import Layout from "../components/Layout.astro";
+import Sidebar from "../components/Sidebar.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import { loadAllExamples } from "../lib/examples";
+import "../styles/global.css";
+
+const examples = loadAllExamples();
+---
+
+<Layout title="clir docs">
+  <div class="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-10">
+    <Sidebar />
+    <article class="prose prose-invert max-w-none space-y-12">
+      <header>
+        <h1 class="text-4xl font-bold tracking-tight">Documentation</h1>
+        <p class="opacity-70 mt-2">Every clir feature, with character-perfect rendered output. Click "Open in Playground" on any example to edit and re-run.</p>
+      </header>
+
+      {examples.map((ex) => (
+        <section id={ex.slug}>
+          <h2 class="text-2xl font-semibold mt-12">{ex.title}</h2>
+          <p class="opacity-70 mt-1">{ex.description}</p>
+          {ex.outputHtml ? (
+            <CodeBlock code={ex.code} outputHtml={ex.outputHtml} slug={ex.slug} />
+          ) : (
+            <div class="mt-4 px-4 py-3 rounded border border-yellow-500/30 text-yellow-200 text-sm">
+              Output not pre-rendered. Run <code>npm run build</code> first.
+            </div>
+          )}
+        </section>
+      ))}
+    </article>
+  </div>
+</Layout>
