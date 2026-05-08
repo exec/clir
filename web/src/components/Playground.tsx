@@ -19,44 +19,43 @@ interface Props {
   examples?: ExampleEntry[];
 }
 
+function resolveInitialCode(initialCode: string | null | undefined, examples: ExampleEntry[] | undefined): string {
+  if (typeof window === "undefined") return initialCode ?? DEFAULT_CODE;
+
+  // Priority:
+  //   1. ?example=<slug>   → look up in `examples` prop
+  //   2. #code=<base64>    → decode shared link
+  //   3. localStorage      → restore last session
+  //   4. fallback to DEFAULT_CODE
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("example");
+  if (slug && examples) {
+    const found = examples.find((e) => e.slug === slug);
+    if (found) return found.code;
+  }
+
+  const m = /#code=([^&]+)/.exec(window.location.hash);
+  if (m) {
+    try { return atob(decodeURIComponent(m[1]!)); } catch { /* fallthrough */ }
+  }
+
+  const stored = window.localStorage.getItem("clir-playground-code");
+  if (stored) return stored;
+
+  return initialCode ?? DEFAULT_CODE;
+}
+
 export default function Playground({ initialCode, examples }: Props) {
-  const [code, setCode] = useState<string>(initialCode ?? DEFAULT_CODE);
+  // Resolve synchronously so Monaco mounts with the right value on first render.
+  // Doing this in a useEffect creates a race: Monaco's loader.init().then captures
+  // the initial code value before the effect runs setCode().
+  const [code, setCode] = useState<string>(() => resolveInitialCode(initialCode, examples));
   const [outputHtml, setOutputHtml] = useState<string>("");
   const [status, setStatus] = useState<string>("Ready");
   const [running, setRunning] = useState<boolean>(false);
   const editorContainer = useRef<HTMLDivElement>(null);
   const editorRef = useRef<unknown>(null);
   const runHandlerRef = useRef<() => Promise<void>>();
-
-  // Resolve initial code from URL on mount. Priority:
-  //   1. ?example=<slug>   → look up in `examples` prop
-  //   2. #code=<base64>    → decode shared link
-  //   3. localStorage      → restore last session
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("example");
-    if (slug && examples) {
-      const found = examples.find((e) => e.slug === slug);
-      if (found) {
-        setCode(found.code);
-        return;
-      }
-    }
-
-    const hash = window.location.hash;
-    const m = /#code=([^&]+)/.exec(hash);
-    if (m) {
-      try {
-        const decoded = atob(decodeURIComponent(m[1]!));
-        setCode(decoded);
-        return;
-      } catch {
-        // fallthrough
-      }
-    }
-    const stored = window.localStorage.getItem("clir-playground-code");
-    if (stored) setCode(stored);
-  }, []);
 
   // Persist on change.
   useEffect(() => {
