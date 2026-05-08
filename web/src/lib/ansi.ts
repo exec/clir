@@ -13,7 +13,7 @@ const BG_4BIT: Record<number, string> = Object.fromEntries(
 function color256(n: number): string {
   if (n < 16) {
     const map = [30, 31, 32, 33, 34, 35, 36, 37, 90, 91, 92, 93, 94, 95, 96, 97];
-    return FG_4BIT[map[n]];
+    return FG_4BIT[map[n]!]!;
   }
   if (n < 232) {
     const i = n - 16;
@@ -75,7 +75,7 @@ function applyParams(state: State, params: number[]): State {
   const next = { ...state };
   let i = 0;
   while (i < params.length) {
-    const p = params[i];
+    const p = params[i]!;
     if (p === 0) {
       Object.assign(next, RESET);
       i += 1;
@@ -90,16 +90,16 @@ function applyParams(state: State, params: number[]): State {
     if (p === 24) { next.underline = false; i += 1; continue; }
     if (p === 39) { next.fg = null; i += 1; continue; }
     if (p === 49) { next.bg = null; i += 1; continue; }
-    if (p in FG_4BIT) { next.fg = FG_4BIT[p]; i += 1; continue; }
-    if (p in BG_4BIT) { next.bg = BG_4BIT[p]; i += 1; continue; }
-    if (p === 38 && params[i + 1] === 5) { next.fg = color256(params[i + 2]); i += 3; continue; }
-    if (p === 48 && params[i + 1] === 5) { next.bg = color256(params[i + 2]); i += 3; continue; }
+    if (p in FG_4BIT) { next.fg = FG_4BIT[p]!; i += 1; continue; }
+    if (p in BG_4BIT) { next.bg = BG_4BIT[p]!; i += 1; continue; }
+    if (p === 38 && params[i + 1] === 5) { next.fg = color256(params[i + 2] ?? 0); i += 3; continue; }
+    if (p === 48 && params[i + 1] === 5) { next.bg = color256(params[i + 2] ?? 0); i += 3; continue; }
     if (p === 38 && params[i + 1] === 2) {
-      next.fg = rgb(params[i + 2], params[i + 3], params[i + 4]);
+      next.fg = rgb(params[i + 2] ?? 0, params[i + 3] ?? 0, params[i + 4] ?? 0);
       i += 5; continue;
     }
     if (p === 48 && params[i + 1] === 2) {
-      next.bg = rgb(params[i + 2], params[i + 3], params[i + 4]);
+      next.bg = rgb(params[i + 2] ?? 0, params[i + 3] ?? 0, params[i + 4] ?? 0);
       i += 5; continue;
     }
     // Unknown SGR — ignore and continue.
@@ -129,7 +129,7 @@ export function ansiToHtml(input: string): string {
   };
 
   while (i < input.length) {
-    const ch = input[i];
+    const ch = input[i]!;
     if (ch !== "\x1b") {
       out += escapeHtml(ch);
       i += 1;
@@ -143,9 +143,9 @@ export function ansiToHtml(input: string): string {
     }
     // Read parameter bytes (digits, ;) until final byte (letter)
     let j = i + 2;
-    while (j < input.length && !/[A-Za-z]/.test(input[j])) j += 1;
+    while (j < input.length && !/[A-Za-z]/.test(input[j]!)) j += 1;
     if (j >= input.length) break;
-    const final = input[j];
+    const final = input[j]!;
     const paramStr = input.slice(i + 2, j);
     if (final === "m") {
       const params = paramStr === "" ? [0] : paramStr.split(";").map((s) => Number(s) || 0);
