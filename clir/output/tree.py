@@ -80,7 +80,7 @@ class Tree:
         tree = RichTree(
             self.label,
             guide_style=self.guide_style,
-            expand=self.expand,
+            expanded=self.expand,
         )
         self._build_tree(tree)
         return tree
