@@ -317,12 +317,21 @@ def echo(*objects: object, sep: str = " ", end: str = "\n") -> None:
     console.print(*objects, sep=sep, end=end)
 
 
+def _styled(tag: str, objects: tuple[object, ...], sep: str) -> str:
+    """Wrap joined objects in inline rich markup for the given style tag.
+
+    Inline markup (vs. the style= kwarg) works in Consoles without a theme —
+    rich silently falls back to plain text when the named style is undefined.
+    """
+    return f"[{tag}]{sep.join(str(o) for o in objects)}[/{tag}]"
+
+
 def success(*objects: object, sep: str = " ") -> None:
     """Print success message to stdout. Suppressed by --quiet."""
     from clir.runtime import get_verbosity
     if get_verbosity().quiet:
         return
-    console.print("[success]", *objects, sep=sep)
+    console.print(_styled("success", objects, sep))
 
 
 def info(*objects: object, sep: str = " ") -> None:
@@ -330,7 +339,7 @@ def info(*objects: object, sep: str = " ") -> None:
     from clir.runtime import get_verbosity
     if get_verbosity().quiet:
         return
-    console.print("[info]", *objects, sep=sep)
+    console.print(_styled("info", objects, sep))
 
 
 def warning(*objects: object, sep: str = " ") -> None:
@@ -338,12 +347,12 @@ def warning(*objects: object, sep: str = " ") -> None:
     from clir.runtime import get_verbosity
     if get_verbosity().quiet:
         return
-    _stderr_console.print("[warning]", *objects, sep=sep)
+    _stderr_console.print(_styled("warning", objects, sep))
 
 
 def error(*objects: object, sep: str = " ") -> None:
     """Print error message to stderr. Always shown."""
-    _stderr_console.print("[error]", *objects, sep=sep)
+    _stderr_console.print(_styled("error", objects, sep))
 
 
 def debug(*objects: object, sep: str = " ") -> None:
@@ -351,7 +360,7 @@ def debug(*objects: object, sep: str = " ") -> None:
     from clir.runtime import get_verbosity
     if not get_verbosity().debug:
         return
-    _stderr_console.print("[debug]", *objects, sep=sep)
+    _stderr_console.print(_styled("debug", objects, sep))
 
 
 def json(data: Any, indent: int = 2, sort_keys: bool = False) -> None:
