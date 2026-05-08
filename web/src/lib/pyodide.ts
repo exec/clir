@@ -99,8 +99,10 @@ export async function runPython(code: string): Promise<RunResult> {
   let stdout = "";
   let stderr = "";
 
-  pyodide.setStdout({ batched: (s) => { stdout += s; } });
-  pyodide.setStderr({ batched: (s) => { stderr += s; } });
+  // batched fires per-line and strips the trailing newline; re-add it so
+  // successive print() calls don't concatenate into a single line.
+  pyodide.setStdout({ batched: (s) => { stdout += s + "\n"; } });
+  pyodide.setStderr({ batched: (s) => { stderr += s + "\n"; } });
 
   // Wrap user code so rich emits truecolor ANSI even though it's not on a TTY.
   // Patch the clir module's consoles BEFORE user code runs.
