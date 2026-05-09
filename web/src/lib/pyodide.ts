@@ -104,22 +104,11 @@ export async function runPython(code: string): Promise<RunResult> {
   pyodide.setStdout({ batched: (s) => { stdout += s + "\n"; } });
   pyodide.setStderr({ batched: (s) => { stderr += s + "\n"; } });
 
-  // Wrap user code so rich emits truecolor ANSI even though it's not on a TTY.
-  // Patch the clir module's consoles BEFORE user code runs.
+  // Wrap user code so rich emits truecolor ANSI even though it's not on a TTY,
+  // and so that subsequent set_theme() calls keep emitting ANSI too.
   const wrapped = `
-import sys
-from rich.console import Console
-from rich.theme import Theme
-import clir.output.style as _style
-
-# Build a Theme from the active theme's truecolor palette so [success]/[error]/etc.
-# resolve to actual styles.
-_theme_colors = _style._THEME_COLORS.get(_style._current_theme_name, _style._THEME_COLORS["default"])
-_palette = _theme_colors.get("truecolor", _theme_colors.get("basic", {}))
-_theme = Theme(_palette) if _palette else None
-
-_style.console = Console(file=sys.stdout, force_terminal=True, color_system="truecolor", width=100, theme=_theme)
-_style._stderr_console = Console(file=sys.stderr, force_terminal=True, color_system="truecolor", width=100, theme=_theme)
+from clir.output import force_terminal as _force_terminal
+_force_terminal(True, "truecolor")
 
 ${code}
 `;

@@ -205,10 +205,30 @@ def auto_theme() -> None:
     set_theme(get_recommended_theme())
 
 
+_FORCE_TERMINAL: bool = False
+_FORCED_COLOR_SYSTEM: str | None = None
+
+
+def force_terminal(enable: bool = True, color_system: str = "truecolor") -> None:
+    """Force ANSI emission regardless of TTY detection.
+
+    Rich normally only emits ANSI when stdout is a TTY. Call this to keep
+    ANSI on when output is captured (Pyodide playgrounds, log files, piped
+    to less -R). Re-applies the current theme so existing console references
+    pick up the new setting.
+    """
+    global _FORCE_TERMINAL, _FORCED_COLOR_SYSTEM
+    _FORCE_TERMINAL = enable
+    _FORCED_COLOR_SYSTEM = color_system if enable else None
+    _apply_theme(_current_theme_name)
+
+
 def _apply_theme(name: str) -> None:
     """Apply a theme based on terminal capability.
 
     Rebuilds both the stdout and stderr consoles so they always share a theme.
+    Honors the force-terminal flag so theme switches keep emitting ANSI in
+    non-TTY contexts.
     """
     global console, _stderr_console
 
@@ -216,8 +236,13 @@ def _apply_theme(name: str) -> None:
     colors = theme_colors.get(TERMINAL_CAPABILITY, theme_colors["basic"])
 
     _custom_theme = Theme(colors)
-    console = Console(theme=_custom_theme)
-    _stderr_console = Console(theme=_custom_theme, stderr=True)
+    kwargs: dict = {"theme": _custom_theme}
+    if _FORCE_TERMINAL:
+        kwargs["force_terminal"] = True
+        if _FORCED_COLOR_SYSTEM:
+            kwargs["color_system"] = _FORCED_COLOR_SYSTEM
+    console = Console(**kwargs)
+    _stderr_console = Console(stderr=True, **kwargs)
 
 
 def get_theme() -> str:

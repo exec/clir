@@ -51,31 +51,20 @@ const PRERENDER_PY = `
 import io
 import sys
 import contextlib
-from rich.console import Console
-from rich.theme import Theme
 
-# Force rich to emit truecolor ANSI even though we're not on a TTY.
-import clir.output.style as _style
-
-# Build a theme matching the active clir theme so [success]/[info]/[warning]/[error]
-# tags resolve to colored styles when piped through rich.
-_theme_colors = _style._THEME_COLORS.get(_style._current_theme_name, _style._THEME_COLORS["default"])
-_colors = _theme_colors.get("truecolor", _theme_colors["basic"])
-_custom_theme = Theme(_colors)
+# Force rich to emit truecolor ANSI even though we're not on a TTY, and keep
+# emitting after any set_theme() calls during the example.
+from clir.output import force_terminal as _force_terminal
+_force_terminal(True, "truecolor")
 
 stdout_buf = io.StringIO()
 stderr_buf = io.StringIO()
 
 with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
-    # Re-patch consoles to point to the redirected streams (post-redirect).
-    _style.console = Console(
-        file=sys.stdout, force_terminal=True, color_system="truecolor",
-        width=100, theme=_custom_theme,
-    )
-    _style._stderr_console = Console(
-        file=sys.stderr, force_terminal=True, color_system="truecolor",
-        width=100, theme=_custom_theme,
-    )
+    # Re-apply force_terminal so the consoles wired up just-now point at the
+    # redirected stdout/stderr (rich captures sys.stdout at Console-construct
+    # time, so we need to rebuild after the redirect).
+    _force_terminal(True, "truecolor")
     code_path = sys.argv[1]
     code_str = open(code_path).read()
     code_obj = compile(code_str, code_path, "exec")
