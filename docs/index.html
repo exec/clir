@@ -1,0 +1,580 @@
+<!DOCTYPE html><html lang="en" class="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>clir docs</title><meta name="description" content="A modern CLI toolkit for Python."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap"><link rel="stylesheet" href="/assets/docs.CBromplz.css"></head> <body class="min-h-screen flex flex-col"> <header class="border-b border-ink-50/10"> <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between"> <a href="/" class="font-mono text-lg font-bold tracking-tight">clir</a> <nav class="flex gap-6 text-sm"> <a href="/docs" class="hover:text-accent transition">Docs</a> <a href="/playground" class="hover:text-accent transition">Playground</a> <a href="https://github.com/exec/clir" class="hover:text-accent transition" target="_blank" rel="noopener noreferrer">GitHub</a> </nav> </div> </header> <main class="flex-1">  <div class="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-10"> <aside class="lg:sticky lg:top-4 lg:self-start text-sm"> <nav class="space-y-6"> <div> <div class="font-semibold opacity-60 uppercase tracking-wider text-xs">Getting Started</div> <ul class="mt-2 space-y-1"> <li><a href="#hello-world" class="hover:text-accent transition">Hello, world!</a></li> </ul> </div><div> <div class="font-semibold opacity-60 uppercase tracking-wider text-xs">Output</div> <ul class="mt-2 space-y-1"> <li><a href="#styled-output" class="hover:text-accent transition">Styled output</a></li><li><a href="#tables" class="hover:text-accent transition">Tables</a></li><li><a href="#panels" class="hover:text-accent transition">Panels</a></li><li><a href="#trees" class="hover:text-accent transition">Trees</a></li><li><a href="#spinners-progress" class="hover:text-accent transition">Spinners &amp; Progress</a></li><li><a href="#markdown" class="hover:text-accent transition">Markdown</a></li><li><a href="#json-output" class="hover:text-accent transition">JSON output</a></li><li><a href="#themes-tour" class="hover:text-accent transition">Theme tour</a></li> </ul> </div><div> <div class="font-semibold opacity-60 uppercase tracking-wider text-xs">Prompts</div> <ul class="mt-2 space-y-1"> <li><a href="#prompts-static" class="hover:text-accent transition">Prompts</a></li><li><a href="#wizards-static" class="hover:text-accent transition">Wizards</a></li> </ul> </div><div> <div class="font-semibold opacity-60 uppercase tracking-wider text-xs">Framework</div> <ul class="mt-2 space-y-1"> <li><a href="#commands-groups" class="hover:text-accent transition">Commands &amp; Groups</a></li><li><a href="#aliases" class="hover:text-accent transition">Aliases</a></li><li><a href="#async-commands" class="hover:text-accent transition">Async commands</a></li><li><a href="#errors" class="hover:text-accent transition">Errors</a></li><li><a href="#validation" class="hover:text-accent transition">Validation</a></li><li><a href="#config-files" class="hover:text-accent transition">Config files</a></li><li><a href="#completion" class="hover:text-accent transition">Shell completion</a></li><li><a href="#plugins" class="hover:text-accent transition">Plugins</a></li> </ul> </div> </nav> </aside> <article class="prose prose-invert max-w-none space-y-12"> <header> <h1 class="text-4xl font-bold tracking-tight">Documentation</h1> <p class="opacity-70 mt-2">Every clir feature, with character-perfect rendered output. Click "Open in Playground" on any example to edit and re-run.</p> </header> <section id="hello-world"> <h2 class="text-2xl font-semibold mt-12">Hello, world!</h2> <p class="opacity-70 mt-1">The simplest possible clir program: print styled output.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="hello-world">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="hello-world">Output</button> <a href="/playground?example=hello-world" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="hello-world"> <pre class="ansi"><code>from clir.output import success, info, warning, error
+
+success(&quot;Hello, world!&quot;)
+info(&quot;Welcome to clir.&quot;)
+warning(&quot;This is a warning.&quot;)
+error(&quot;This is an error.&quot;)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="hello-world"><div class="example-output"><pre class="ansi"><span class="ansi-bold" style="color:#0dbc79">Hello, world!</span>
+<span style="color:#11a8cd">Welcome to clir.</span>
+</pre><div class="stderr-mark"><pre class="ansi"><span class="ansi-bold" style="color:#e5e510">This is a warning.</span>
+<span class="ansi-bold" style="color:#cd3131">This is an error.</span>
+</pre></div></div></div> </div> <script>(function(){const slug = "hello-world";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="styled-output"> <h2 class="text-2xl font-semibold mt-12">Styled output</h2> <p class="opacity-70 mt-1">The six core output functions, with --debug enabled to show debug() too.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="styled-output">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="styled-output">Output</button> <a href="/playground?example=styled-output" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="styled-output"> <pre class="ansi"><code>from clir.output import echo, success, info, warning, error, debug
+from clir.runtime import set_verbosity, Verbosity
+
+set_verbosity(Verbosity(debug=True))
+echo(&quot;Plain echo line.&quot;)
+success(&quot;Operation completed successfully.&quot;)
+info(&quot;Loaded 42 records.&quot;)
+warning(&quot;Cache is stale.&quot;)
+error(&quot;Connection refused.&quot;)
+debug(&quot;Internal state: idle&quot;)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="styled-output"><div class="example-output"><pre class="ansi">Plain echo line.
+<span class="ansi-bold" style="color:#0dbc79">Operation completed successfully.</span>
+<span style="color:#11a8cd">Loaded </span><span class="ansi-bold" style="color:#11a8cd">42</span><span style="color:#11a8cd"> records.</span>
+</pre><div class="stderr-mark"><pre class="ansi"><span class="ansi-bold" style="color:#e5e510">Cache is stale.</span>
+<span class="ansi-bold" style="color:#cd3131">Connection refused.</span>
+<span class="ansi-dim">Internal state: idle</span>
+</pre></div></div></div> </div> <script>(function(){const slug = "styled-output";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="tables"> <h2 class="text-2xl font-semibold mt-12">Tables</h2> <p class="opacity-70 mt-1">Tables with styled cells using inline rich markup.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="tables">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="tables">Output</button> <a href="/playground?example=tables" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="tables"> <pre class="ansi"><code>from clir.output import Table
+
+t = Table(&quot;Component&quot;, &quot;Status&quot;, &quot;Latency&quot;)
+t.add_row(&quot;API&quot;, &quot;[green]running[/green]&quot;, &quot;12ms&quot;)
+t.add_row(&quot;Database&quot;, &quot;[green]running[/green]&quot;, &quot;3ms&quot;)
+t.add_row(&quot;Cache&quot;, &quot;[yellow]degraded[/yellow]&quot;, &quot;84ms&quot;)
+t.add_row(&quot;Queue&quot;, &quot;[red]down[/red]&quot;, &quot;—&quot;)
+t.show()
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="tables"><div class="example-output"><pre class="ansi">┏━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃<span class="ansi-bold"> </span><span class="ansi-bold">Component</span><span class="ansi-bold"> </span>┃<span class="ansi-bold"> </span><span class="ansi-bold">Status  </span><span class="ansi-bold"> </span>┃<span class="ansi-bold"> </span><span class="ansi-bold">Latency</span><span class="ansi-bold"> </span>┃
+┡━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ API       │ <span style="color:#0dbc79">running</span>  │ 12ms    │
+│ Database  │ <span style="color:#0dbc79">running</span>  │ 3ms     │
+│ Cache     │ <span style="color:#e5e510">degraded</span> │ 84ms    │
+│ Queue     │ <span style="color:#cd3131">down</span>     │ —       │
+└───────────┴──────────┴─────────┘
+</pre></div></div> </div> <script>(function(){const slug = "tables";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="panels"> <h2 class="text-2xl font-semibold mt-12">Panels</h2> <p class="opacity-70 mt-1">Bordered panels with titles for grouping output.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="panels">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="panels">Output</button> <a href="/playground?example=panels" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="panels"> <pre class="ansi"><code>from clir.output import Panel
+
+Panel(
+    &quot;All systems operational.\nFour services healthy.&quot;,
+    title=&quot;Status&quot;,
+).show()
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="panels"><div class="example-output"><pre class="ansi"><span style="color:#2472c8">╭─</span><span style="color:#2472c8">──────────────────────────────────</span><span style="color:#2472c8"> Status </span><span style="color:#2472c8">──────────────────────────────────</span><span style="color:#2472c8">─╮</span>
+<span style="color:#2472c8">│</span> All systems operational.                                                     <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span> Four services healthy.                                                       <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">╰──────────────────────────────────────────────────────────────────────────────╯</span>
+</pre></div></div> </div> <script>(function(){const slug = "panels";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="trees"> <h2 class="text-2xl font-semibold mt-12">Trees</h2> <p class="opacity-70 mt-1">Hierarchical tree output.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="trees">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="trees">Output</button> <a href="/playground?example=trees" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="trees"> <pre class="ansi"><code>from clir.output import Tree
+
+t = Tree(&quot;project&quot;)
+src = t.branch(&quot;src&quot;)
+src.add(&quot;main.py&quot;)
+src.add(&quot;utils.py&quot;)
+tests = t.branch(&quot;tests&quot;)
+tests.add(&quot;test_main.py&quot;)
+t.add(&quot;README.md&quot;)
+t.show()
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="trees"><div class="example-output"><pre class="ansi">project
+</pre></div></div> </div> <script>(function(){const slug = "trees";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="spinners-progress"> <h2 class="text-2xl font-semibold mt-12">Spinners &amp; Progress</h2> <p class="opacity-70 mt-1">Animated indicators (only the final frame shows in the docs; full animation in the playground).</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="spinners-progress">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="spinners-progress">Output</button> <a href="/playground?example=spinners-progress" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="spinners-progress"> <pre class="ansi"><code>from clir.output import Spinner, Progress
+import time
+
+with Spinner(&quot;Loading data...&quot;):
+    time.sleep(0.3)
+
+with Progress(&quot;Indexing files&quot;) as p:
+    p.set_total(4)
+    for _ in range(4):
+        time.sleep(0.05)
+        p.update(advance=1)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="spinners-progress"><div class="example-output"><pre class="ansi">⠋ Loading data...⠋ Loading data...⠙ Loading data...⠙ Loading data...⠹ Loading data...⠸ Loading data...⠸ Loading data...
+<span style="color:#0dbc79">⠋ </span> Indexing files      <span style="color:#993056">━</span><span style="color:#b72c5e">━</span><span style="color:#d12a66">━</span><span style="color:#e6276c">━</span><span style="color:#f42670">━</span><span style="color:#f92672">━</span><span style="color:#f42670">━</span><span style="color:#e6276c">━</span><span style="color:#d12a66">━</span><span style="color:#b72c5e">━</span><span style="color:#993056">━</span><span style="color:#7b334d">━</span><span style="color:#613545">━</span><span style="color:#4c383f">━</span><span style="color:#3e393b">━</span><span style="color:#3a3a3a">━</span><span style="color:#3e393b">━</span><span style="color:#4c383f">━</span><span style="color:#613545">━</span><span style="color:#7b334d">━</span><span style="color:#993056">━</span><span style="color:#b72c5e">━</span><span style="color:#d12a66">━</span><span style="color:#e6276c">━</span><span style="color:#f42670">━</span><span style="color:#f92672">━</span><span style="color:#f42670">━</span><span style="color:#e6276c">━</span><span style="color:#d12a66">━</span><span style="color:#b72c5e">━</span><span style="color:#993056">━</span><span style="color:#7b334d">━</span><span style="color:#613545">━</span><span style="color:#4c383f">━</span><span style="color:#3e393b">━</span><span style="color:#3a3a3a">━</span><span style="color:#3e393b">━</span><span style="color:#4c383f">━</span><span style="color:#613545">━</span><span style="color:#7b334d">━</span>                <span style="color:#11a8cd"> </span><span style="color:#0dbc79">⠙ </span> Indexing files   <span style="color:#f92672">━━━━━━━━━━</span><span style="color:#3a3a3a">╺</span><span style="color:#3a3a3a">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>       <span style="color:#bc3fbc"> 25%</span>  <span style="color:#11a8cd">-:--:--</span><span style="color:#0dbc79">⠹ </span> Indexing files   <span style="color:#f92672">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span style="color:#3a3a3a">╺</span><span style="color:#3a3a3a">━━━━━━━━━</span>       <span style="color:#bc3fbc"> 75%</span>  <span style="color:#11a8cd">0:00:01</span>   Indexing files   <span style="color:#729c1f">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>       <span style="color:#bc3fbc">100%</span>  <span style="color:#11a8cd">0:00:00</span>
+</pre></div></div> </div> <script>(function(){const slug = "spinners-progress";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="markdown"> <h2 class="text-2xl font-semibold mt-12">Markdown</h2> <p class="opacity-70 mt-1">Rich-rendered Markdown output.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="markdown">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="markdown">Output</button> <a href="/playground?example=markdown" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="markdown"> <pre class="ansi"><code>from clir.output import Markdown
+
+Markdown().render(&quot;&quot;&quot;# Welcome
+This is **bold** and *italic*.
+
+- bullet one
+- bullet two
+
+&gt; A blockquote.
+&quot;&quot;&quot;)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="markdown"><div class="example-output"><pre class="ansi">                                    <span class="ansi-bold ansi-underline">Welcome</span>                                     
+
+This is <span class="ansi-bold">bold</span> and <span class="ansi-italic">italic</span>.                                                        
+
+<span class="ansi-bold"> • </span>bullet one                                                                   
+<span class="ansi-bold"> • </span>bullet two                                                                   
+
+<span style="color:#bc3fbc">▌ </span><span style="color:#bc3fbc">A blockquote.</span><span style="color:#bc3fbc">                                                               </span>
+</pre></div></div> </div> <script>(function(){const slug = "markdown";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="json-output"> <h2 class="text-2xl font-semibold mt-12">JSON output</h2> <p class="opacity-70 mt-1">Pretty-printed JSON with syntax highlighting.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="json-output">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="json-output">Output</button> <a href="/playground?example=json-output" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="json-output"> <pre class="ansi"><code>from clir.output import json
+
+json({&quot;status&quot;: &quot;ok&quot;, &quot;count&quot;: 3, &quot;items&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]})
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="json-output"><div class="example-output"><pre class="ansi"><span class="ansi-bold">{</span>
+  <span class="ansi-bold" style="color:#2472c8">&quot;status&quot;</span>: <span style="color:#0dbc79">&quot;ok&quot;</span>,
+  <span class="ansi-bold" style="color:#2472c8">&quot;count&quot;</span>: <span class="ansi-bold" style="color:#11a8cd">3</span>,
+  <span class="ansi-bold" style="color:#2472c8">&quot;items&quot;</span>: <span class="ansi-bold">[</span>
+    <span style="color:#0dbc79">&quot;a&quot;</span>,
+    <span style="color:#0dbc79">&quot;b&quot;</span>,
+    <span style="color:#0dbc79">&quot;c&quot;</span>
+  <span class="ansi-bold">]</span>
+<span class="ansi-bold">}</span>
+</pre></div></div> </div> <script>(function(){const slug = "json-output";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="prompts-static"> <h2 class="text-2xl font-semibold mt-12">Prompts</h2> <p class="opacity-70 mt-1">A static walkthrough; open in the playground to actually type input. Full prompt bridging arrives in the next site update.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="prompts-static">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="prompts-static">Output</button> <a href="/playground?example=prompts-static" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="prompts-static"> <pre class="ansi"><code># In docs we render a static representation; the playground will
+# bridge actual prompt() calls to a DOM input widget.
+from clir.output import Panel, info
+
+Panel(
+    &quot;$ name = prompt(\&quot;What is your name?\&quot;)\n&quot;
+    &quot;  &gt; World\n&quot;
+    &quot;$ confirm(\&quot;Continue?\&quot;, default=True)\n&quot;
+    &quot;  &gt; Y\n&quot;
+    &quot;$ select(\&quot;Pick a color:\&quot;, [\&quot;red\&quot;, \&quot;green\&quot;, \&quot;blue\&quot;])\n&quot;
+    &quot;  &gt; red&quot;,
+    title=&quot;Interactive prompts (open in playground to try)&quot;,
+).show()
+info(&quot;clir&#39;s prompt API is non-blocking and integrates with prompt_toolkit.&quot;)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="prompts-static"><div class="example-output"><pre class="ansi"><span style="color:#2472c8">╭─</span><span style="color:#2472c8">─────────────</span><span style="color:#2472c8"> Interactive prompts (open in playground to try) </span><span style="color:#2472c8">──────────────</span><span style="color:#2472c8">─╮</span>
+<span style="color:#2472c8">│</span> $ name = prompt(&quot;What is your name?&quot;)                                        <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span>   &gt; World                                                                    <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span> $ confirm(&quot;Continue?&quot;, default=True)                                         <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span>   &gt; Y                                                                        <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span> $ select(&quot;Pick a color:&quot;, [&quot;red&quot;, &quot;green&quot;, &quot;blue&quot;])                          <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span>   &gt; red                                                                      <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">╰──────────────────────────────────────────────────────────────────────────────╯</span>
+<span style="color:#11a8cd">clir&#39;s prompt API is non-blocking and integrates with prompt_toolkit.</span>
+</pre></div></div> </div> <script>(function(){const slug = "prompts-static";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="wizards-static"> <h2 class="text-2xl font-semibold mt-12">Wizards</h2> <p class="opacity-70 mt-1">Multi-step interactive flows. Static depiction in docs.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="wizards-static">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="wizards-static">Output</button> <a href="/playground?example=wizards-static" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="wizards-static"> <pre class="ansi"><code>from clir.output import Panel
+
+Panel(
+    &quot;Step 1/3: project name → my-app\n&quot;
+    &quot;Step 2/3: language    → Python\n&quot;
+    &quot;Step 3/3: use a database? → Yes\n\n&quot;
+    &quot;Result: {&#39;name&#39;: &#39;my-app&#39;, &#39;language&#39;: &#39;Python&#39;, &#39;database&#39;: &#39;Yes&#39;}&quot;,
+    title=&quot;Wizard (multi-step prompt flow)&quot;,
+).show()
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="wizards-static"><div class="example-output"><pre class="ansi"><span style="color:#2472c8">╭─</span><span style="color:#2472c8">─────────────────────</span><span style="color:#2472c8"> Wizard (multi-step prompt flow) </span><span style="color:#2472c8">──────────────────────</span><span style="color:#2472c8">─╮</span>
+<span style="color:#2472c8">│</span> Step 1/3: project name → my-app                                              <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span> Step 2/3: language    → Python                                               <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span> Step 3/3: use a database? → Yes                                              <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span>                                                                              <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">│</span> Result: {&#39;name&#39;: &#39;my-app&#39;, &#39;language&#39;: &#39;Python&#39;, &#39;database&#39;: &#39;Yes&#39;}          <span style="color:#2472c8">│</span>
+<span style="color:#2472c8">╰──────────────────────────────────────────────────────────────────────────────╯</span>
+</pre></div></div> </div> <script>(function(){const slug = "wizards-static";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="commands-groups"> <h2 class="text-2xl font-semibold mt-12">Commands &amp; Groups</h2> <p class="opacity-70 mt-1">@app.command(), @app.group(), --help, and arguments/options.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="commands-groups">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="commands-groups">Output</button> <a href="/playground?example=commands-groups" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="commands-groups"> <pre class="ansi"><code>from clir import ClirApp, argument, option
+
+app = ClirApp(name=&quot;mycli&quot;, description=&quot;A small CLI demonstrating commands and groups.&quot;)
+
+@app.command()
+@argument(&quot;name&quot;)
+@option(&quot;--count&quot;, &quot;-c&quot;, default=1)
+def greet(name: str, count: int):
+    &quot;&quot;&quot;Greet someone warmly.&quot;&quot;&quot;
+    for _ in range(count):
+        print(f&quot;Hello, {name}!&quot;)
+
+@app.group()
+def db():
+    &quot;&quot;&quot;Database operations.&quot;&quot;&quot;
+    pass
+
+@db.command()
+def migrate():
+    &quot;&quot;&quot;Run pending migrations.&quot;&quot;&quot;
+    print(&quot;Migrations applied.&quot;)
+
+app.run([&quot;--help&quot;])
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="commands-groups"><div class="example-output"><pre class="ansi"><span class="ansi-bold">Usage:</span> mycli <span class="ansi-bold">[</span>command<span class="ansi-bold">]</span> <span class="ansi-bold">[</span>options<span class="ansi-bold">]</span>
+
+A small CLI demonstrating commands and groups.
+
+<span class="ansi-bold">Commands:</span>
+<span style="color:#11a8cd"> </span><span style="color:#11a8cd">  greet</span><span style="color:#11a8cd"> </span><span class="ansi-dim"> </span><span class="ansi-dim">Greet someone warmly.</span><span class="ansi-dim"> </span>
+<span style="color:#11a8cd"> </span><span style="color:#11a8cd">  db   </span><span style="color:#11a8cd"> </span><span class="ansi-dim"> </span><span class="ansi-dim">Database operations. </span><span class="ansi-dim"> </span>
+
+Run <span style="color:#0dbc79">&#39;mycli </span><span style="color:#0dbc79">&lt;</span><span style="color:#0dbc79">command</span><span style="color:#0dbc79">&gt;</span><span style="color:#0dbc79"> --help&#39;</span> for more info on a command.
+</pre></div></div> </div> <script>(function(){const slug = "commands-groups";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="aliases"> <h2 class="text-2xl font-semibold mt-12">Aliases</h2> <p class="opacity-70 mt-1">Command shortcuts that resolve before dispatch.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="aliases">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="aliases">Output</button> <a href="/playground?example=aliases" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="aliases"> <pre class="ansi"><code>from clir import ClirApp
+
+app = ClirApp(name=&quot;mycli&quot;)
+
+@app.command()
+def hello():
+    print(&quot;Hello!&quot;)
+
+app.aliases.add(&quot;hi&quot;, &quot;hello&quot;)
+app.aliases.add(&quot;greet&quot;, &quot;hello&quot;)
+
+print(&quot;Resolved &#39;hi&#39; --&gt;&quot;, app.aliases.resolve(&quot;hi&quot;))
+print(&quot;Resolved &#39;greet&#39; --&gt;&quot;, app.aliases.resolve(&quot;greet&quot;))
+app.run([&quot;hi&quot;])
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="aliases"><div class="example-output"><pre class="ansi">Resolved &#39;hi&#39; --&gt; hello
+Resolved &#39;greet&#39; --&gt; hello
+Hello!
+</pre></div></div> </div> <script>(function(){const slug = "aliases";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="async-commands"> <h2 class="text-2xl font-semibold mt-12">Async commands</h2> <p class="opacity-70 mt-1">await app.run_async() works from inside an existing event loop.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="async-commands">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="async-commands">Output</button> <a href="/playground?example=async-commands" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="async-commands"> <pre class="ansi"><code>import asyncio
+from clir import ClirApp, option
+
+app = ClirApp(name=&quot;async-demo&quot;)
+
+@app.command()
+@option(&quot;--url&quot;, default=&quot;https://example.com&quot;)
+async def fetch(url: str = &quot;https://example.com&quot;):
+    &quot;&quot;&quot;Async command -- runs on the same event loop as run_async.&quot;&quot;&quot;
+    await asyncio.sleep(0.05)
+    print(f&quot;Fetched {url}&quot;)
+
+asyncio.run(app.run_async([&quot;fetch&quot;]))
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="async-commands"><div class="example-output"><pre class="ansi">Fetched https://example.com
+</pre></div></div> </div> <script>(function(){const slug = "async-commands";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="errors"> <h2 class="text-2xl font-semibold mt-12">Errors</h2> <p class="opacity-70 mt-1">ClirError + UsageError surface a styled message and exit code; --debug shows the traceback.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="errors">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="errors">Output</button> <a href="/playground?example=errors" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="errors"> <pre class="ansi"><code>from clir import ClirApp, ClirError, UsageError
+
+app = ClirApp(name=&quot;demo&quot;)
+
+@app.command()
+def bad():
+    raise UsageError(&quot;Missing required --name flag.&quot;)
+
+try:
+    app.run([&quot;bad&quot;])
+except SystemExit as e:
+    print(f&quot;\nExit code was: {e.code}&quot;)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="errors"><div class="example-output"><pre class="ansi">
+Exit code was: 2
+</pre><div class="stderr-mark"><pre class="ansi"><span class="ansi-bold" style="color:#cd3131">Missing required --name flag.</span>
+</pre></div></div></div> </div> <script>(function(){const slug = "errors";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="validation"> <h2 class="text-2xl font-semibold mt-12">Validation</h2> <p class="opacity-70 mt-1">Pydantic validation errors are surfaced per-field via the dispatcher.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="validation">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="validation">Output</button> <a href="/playground?example=validation" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="validation"> <pre class="ansi"><code>from clir import BaseModel, Field, ValidationError, ClirApp, argument, option
+from clir.output import error
+
+class Config(BaseModel):
+    port: int = Field(ge=1, le=65535)
+    host: str = &quot;localhost&quot;
+
+app = ClirApp(name=&quot;serve&quot;)
+
+@app.command()
+@argument(&quot;port&quot;)
+@option(&quot;--host&quot;, default=&quot;localhost&quot;)
+def start(port: str, host: str = &quot;localhost&quot;):
+    try:
+        cfg = Config(port=int(port), host=host)
+        print(f&quot;Starting on {cfg.host}:{cfg.port}&quot;)
+    except ValidationError as e:
+        for err in e.errors():
+            error(f&quot;{&#39;.&#39;.join(str(p) for p in err[&#39;loc&#39;])}: {err[&#39;msg&#39;]}&quot;)
+
+app.run([&quot;start&quot;, &quot;99999&quot;])
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="validation"><div class="example-output"><pre class="ansi"></pre><div class="stderr-mark"><pre class="ansi"><span class="ansi-bold" style="color:#cd3131">port: Input should be less than or equal to </span><span class="ansi-bold" style="color:#cd3131">65535</span>
+</pre></div></div></div> </div> <script>(function(){const slug = "validation";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="config-files"> <h2 class="text-2xl font-semibold mt-12">Config files</h2> <p class="opacity-70 mt-1">Auto-discover and load YAML / JSON / TOML config; env-var override.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="config-files">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="config-files">Output</button> <a href="/playground?example=config-files" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="config-files"> <pre class="ansi"><code>import json, tempfile, os
+from clir import ClirApp
+
+# Write a temp config and load it
+with tempfile.NamedTemporaryFile(&quot;w&quot;, suffix=&quot;.json&quot;, delete=False) as f:
+    json.dump({&quot;debug&quot;: True, &quot;port&quot;: 8080}, f)
+    cfg_path = f.name
+
+app = ClirApp(name=&quot;myapp&quot;)
+app.load_config(cfg_path)
+print(&quot;debug =&quot;, app.get_config_value(&quot;debug&quot;))
+print(&quot;port  =&quot;, app.get_config_value(&quot;port&quot;))
+os.unlink(cfg_path)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="config-files"><div class="example-output"><pre class="ansi">debug = True
+port  = 8080
+</pre></div></div> </div> <script>(function(){const slug = "config-files";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="completion"> <h2 class="text-2xl font-semibold mt-12">Shell completion</h2> <p class="opacity-70 mt-1">Generate bash, zsh, or fish completion scripts.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="completion">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="completion">Output</button> <a href="/playground?example=completion" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="completion"> <pre class="ansi"><code>from clir import ClirApp
+
+app = ClirApp(name=&quot;mycli&quot;)
+
+@app.command()
+def hello():
+    pass
+
+@app.command()
+def world():
+    pass
+
+print(app.generate_completion(&quot;zsh&quot;)[:400] + &quot;\n... (truncated)&quot;)
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="completion"><div class="example-output"><pre class="ansi">#compdef mycli
+
+local -a commands
+commands=(
+&quot;hello&quot;
+&quot;world&quot;
+)
+
+_arguments &#39;1:command:($commands)&#39; &#39;*::arg:_dummy&#39;
+
+case &quot;$words[1]&quot; in
+esac
+
+... (truncated)
+</pre></div></div> </div> <script>(function(){const slug = "completion";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="themes-tour"> <h2 class="text-2xl font-semibold mt-12">Theme tour</h2> <p class="opacity-70 mt-1">Six themes side by side, each showing the full success/info/warning/error/debug palette. clir ships 15+ themes total.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="themes-tour">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="themes-tour">Output</button> <a href="/playground?example=themes-tour" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="themes-tour"> <pre class="ansi"><code>from clir.output import set_theme, echo
+
+# Each theme remaps the 5 named styles (success, info, warning, error, debug).
+# Cycling through them shows how the entire palette shifts at once.
+themes = [&quot;default&quot;, &quot;dracula&quot;, &quot;monokai&quot;, &quot;nord&quot;, &quot;synthwave&quot;, &quot;bubblegum&quot;]
+
+for theme in themes:
+    set_theme(theme)
+    echo(f&quot;[bold]── {theme} ──[/bold]&quot;)
+    echo(&quot;[success]✓ build completed in 2.3s[/success]&quot;)
+    echo(&quot;[info]ℹ deploying to staging-eu-west[/info]&quot;)
+    echo(&quot;[warning]⚠ disk usage at 80% on /var[/warning]&quot;)
+    echo(&quot;[error]✗ connection refused on :5432[/error]&quot;)
+    echo(&quot;[debug]· trace: handshake() → tls_init() → ready[/debug]&quot;)
+    echo()
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="themes-tour"><div class="example-output"><pre class="ansi"><span class="ansi-bold">── default ──</span>
+<span class="ansi-bold" style="color:#0dbc79">✓ build completed in </span><span class="ansi-bold" style="color:#0dbc79">2.</span><span class="ansi-bold" style="color:#0dbc79">3s</span>
+<span style="color:#11a8cd">ℹ deploying to staging-eu-west</span>
+<span class="ansi-bold" style="color:#e5e510">⚠ disk usage at </span><span class="ansi-bold" style="color:#e5e510">80</span><span class="ansi-bold" style="color:#e5e510">% on </span><span class="ansi-bold" style="color:#e5e510">/</span><span class="ansi-bold" style="color:#e5e510">var</span>
+<span class="ansi-bold" style="color:#cd3131">✗ connection refused on :</span><span class="ansi-bold" style="color:#cd3131">5432</span>
+<span class="ansi-dim">· trace: </span><span class="ansi-bold ansi-dim" style="color:#bc3fbc">handshake</span><span class="ansi-bold ansi-dim">(</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> → </span><span class="ansi-bold ansi-dim" style="color:#bc3fbc">tls_init</span><span class="ansi-bold ansi-dim">(</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> → ready</span>
+
+<span class="ansi-bold">── dracula ──</span>
+<span class="ansi-bold" style="color:#0dbc79">✓ build completed in </span><span class="ansi-bold" style="color:#0dbc79">2.</span><span class="ansi-bold" style="color:#0dbc79">3s</span>
+<span style="color:#bc3fbc">ℹ deploying to staging-eu-west</span>
+<span class="ansi-bold" style="color:#e5e510">⚠ disk usage at </span><span class="ansi-bold" style="color:#e5e510">80</span><span class="ansi-bold" style="color:#e5e510">% on </span><span class="ansi-bold" style="color:#e5e510">/</span><span class="ansi-bold" style="color:#e5e510">var</span>
+<span class="ansi-bold" style="color:#cd3131">✗ connection refused on :</span><span class="ansi-bold" style="color:#cd3131">5432</span>
+<span style="color:#2472c8">· trace: </span><span class="ansi-bold" style="color:#2472c8">handshake</span><span class="ansi-bold" style="color:#2472c8">(</span><span class="ansi-bold" style="color:#2472c8">)</span><span style="color:#2472c8"> → </span><span class="ansi-bold" style="color:#2472c8">tls_init</span><span class="ansi-bold" style="color:#2472c8">(</span><span class="ansi-bold" style="color:#2472c8">)</span><span style="color:#2472c8"> → ready</span>
+
+<span class="ansi-bold">── monokai ──</span>
+<span class="ansi-bold" style="color:#0dbc79">✓ build completed in </span><span class="ansi-bold" style="color:#0dbc79">2.</span><span class="ansi-bold" style="color:#0dbc79">3s</span>
+<span style="color:#11a8cd">ℹ deploying to staging-eu-west</span>
+<span class="ansi-bold" style="color:#e5e510">⚠ disk usage at </span><span class="ansi-bold" style="color:#e5e510">80</span><span class="ansi-bold" style="color:#e5e510">% on </span><span class="ansi-bold" style="color:#e5e510">/</span><span class="ansi-bold" style="color:#e5e510">var</span>
+<span class="ansi-bold" style="color:#cd3131">✗ connection refused on :</span><span class="ansi-bold" style="color:#cd3131">5432</span>
+<span style="color:#e5e5e5">· trace: </span><span class="ansi-bold" style="color:#e5e5e5">handshake</span><span class="ansi-bold" style="color:#e5e5e5">(</span><span class="ansi-bold" style="color:#e5e5e5">)</span><span style="color:#e5e5e5"> → </span><span class="ansi-bold" style="color:#e5e5e5">tls_init</span><span class="ansi-bold" style="color:#e5e5e5">(</span><span class="ansi-bold" style="color:#e5e5e5">)</span><span style="color:#e5e5e5"> → ready</span>
+
+<span class="ansi-bold">── nord ──</span>
+<span class="ansi-bold" style="color:#11a8cd">✓ build completed in </span><span class="ansi-bold" style="color:#11a8cd">2.</span><span class="ansi-bold" style="color:#11a8cd">3s</span>
+<span style="color:#2472c8">ℹ deploying to staging-eu-west</span>
+<span class="ansi-bold" style="color:#e5e510">⚠ disk usage at </span><span class="ansi-bold" style="color:#e5e510">80</span><span class="ansi-bold" style="color:#e5e510">% on </span><span class="ansi-bold" style="color:#e5e510">/</span><span class="ansi-bold" style="color:#e5e510">var</span>
+<span class="ansi-bold" style="color:#cd3131">✗ connection refused on :</span><span class="ansi-bold" style="color:#cd3131">5432</span>
+<span style="color:#2472c8">· trace: </span><span class="ansi-bold" style="color:#2472c8">handshake</span><span class="ansi-bold" style="color:#2472c8">(</span><span class="ansi-bold" style="color:#2472c8">)</span><span style="color:#2472c8"> → </span><span class="ansi-bold" style="color:#2472c8">tls_init</span><span class="ansi-bold" style="color:#2472c8">(</span><span class="ansi-bold" style="color:#2472c8">)</span><span style="color:#2472c8"> → ready</span>
+
+<span class="ansi-bold">── synthwave ──</span>
+<span class="ansi-bold" style="color:#bc3fbc">✓ build completed in </span><span class="ansi-bold" style="color:#bc3fbc">2.</span><span class="ansi-bold" style="color:#bc3fbc">3s</span>
+<span style="color:#bc3fbc">ℹ deploying to staging-eu-west</span>
+<span class="ansi-bold" style="color:#e5e510">⚠ disk usage at </span><span class="ansi-bold" style="color:#e5e510">80</span><span class="ansi-bold" style="color:#e5e510">% on </span><span class="ansi-bold" style="color:#e5e510">/</span><span class="ansi-bold" style="color:#e5e510">var</span>
+<span class="ansi-bold" style="color:#cd3131">✗ connection refused on :</span><span class="ansi-bold" style="color:#cd3131">5432</span>
+<span style="color:#2472c8">· trace: </span><span class="ansi-bold" style="color:#2472c8">handshake</span><span class="ansi-bold" style="color:#2472c8">(</span><span class="ansi-bold" style="color:#2472c8">)</span><span style="color:#2472c8"> → </span><span class="ansi-bold" style="color:#2472c8">tls_init</span><span class="ansi-bold" style="color:#2472c8">(</span><span class="ansi-bold" style="color:#2472c8">)</span><span style="color:#2472c8"> → ready</span>
+
+<span class="ansi-bold">── bubblegum ──</span>
+<span class="ansi-bold" style="color:#bc3fbc">✓ build completed in </span><span class="ansi-bold" style="color:#bc3fbc">2.</span><span class="ansi-bold" style="color:#bc3fbc">3s</span>
+<span style="color:#bc3fbc">ℹ deploying to staging-eu-west</span>
+<span class="ansi-bold" style="color:#bc3fbc">⚠ disk usage at </span><span class="ansi-bold" style="color:#bc3fbc">80</span><span class="ansi-bold" style="color:#bc3fbc">% on </span><span class="ansi-bold" style="color:#bc3fbc">/</span><span class="ansi-bold" style="color:#bc3fbc">var</span>
+<span class="ansi-bold" style="color:#cd3131">✗ connection refused on :</span><span class="ansi-bold" style="color:#cd3131">5432</span>
+<span style="color:#bc3fbc">· trace: </span><span class="ansi-bold" style="color:#bc3fbc">handshake</span><span class="ansi-bold" style="color:#bc3fbc">(</span><span class="ansi-bold" style="color:#bc3fbc">)</span><span style="color:#bc3fbc"> → </span><span class="ansi-bold" style="color:#bc3fbc">tls_init</span><span class="ansi-bold" style="color:#bc3fbc">(</span><span class="ansi-bold" style="color:#bc3fbc">)</span><span style="color:#bc3fbc"> → ready</span>
+
+</pre></div></div> </div> <script>(function(){const slug = "themes-tour";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section><section id="plugins"> <h2 class="text-2xl font-semibold mt-12">Plugins</h2> <p class="opacity-70 mt-1">Register additional commands at runtime via the plugin manager.</p> <div class="code-block rounded-lg border border-ink-50/10 overflow-hidden mt-4 mb-8"> <div class="flex border-b border-ink-50/10 bg-ink-900/40"> <button class="tab px-4 py-2 text-sm font-medium" data-tab="code" data-slug="plugins">Code</button> <button class="tab px-4 py-2 text-sm opacity-60 hover:opacity-100" data-tab="output" data-slug="plugins">Output</button> <a href="/playground?example=plugins" class="ml-auto px-4 py-2 text-sm hover:text-accent transition">▷ Open in Playground</a> </div> <div class="tab-panel" data-panel="code" data-slug="plugins"> <pre class="ansi"><code>from clir import ClirApp
+from clir.plugins import PluginManager, Plugin
+
+app = ClirApp(name=&quot;myapp&quot;)
+pm = PluginManager(app)
+
+
+# Register a plugin in code (the real plugin system also discovers
+# entry-point packages and on-disk plugin files via load_from_directory).
+class HelloPlugin(Plugin):
+    name = &quot;hello&quot;
+    version = &quot;1.0.0&quot;
+
+    def on_register(self):
+        @self.app.command(name=&quot;hello&quot;)
+        def hello_cmd():
+            &quot;&quot;&quot;Hello from a plugin.&quot;&quot;&quot;
+            print(&quot;Hello from a plugin!&quot;)
+
+
+pm.register(HelloPlugin)
+print(&quot;Plugins registered:&quot;, pm.list())
+app.run([&quot;hello&quot;])
+</code></pre> </div> <div class="tab-panel hidden" data-panel="output" data-slug="plugins"><div class="example-output"><pre class="ansi">Plugins registered: [&#39;hello&#39;]
+Hello from a plugin!
+</pre></div></div> </div> <script>(function(){const slug = "plugins";
+
+  const buttons = document.querySelectorAll(`[data-slug="${slug}"][data-tab]`);
+  const panels = document.querySelectorAll(`[data-slug="${slug}"][data-panel]`);
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      const target = b.dataset.tab;
+      buttons.forEach((bb) => bb.classList.toggle("opacity-60", bb.dataset.tab !== target));
+      panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== target));
+    });
+  });
+})();</script> </section> </article> </div>  </main> <footer class="border-t border-ink-50/10 mt-12"> <div class="max-w-5xl mx-auto px-6 py-6 text-sm opacity-60">
+clir · MIT licensed · <a href="https://github.com/exec/clir" class="underline hover:text-accent">github.com/exec/clir</a> </div> </footer>  </body> </html>
