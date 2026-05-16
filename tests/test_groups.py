@@ -70,9 +70,9 @@ def test_unknown_group_subcommand(app_with_groups):
     runner = CliRunner(app_with_groups)
     result = runner.invoke(["config", "unknown", "arg"])
 
-    # Exit code 1 for custom error handling
+    # Unknown subcommand is a usage error -> exit 2 (matches argparse convention)
     assert not result.success
-    assert result.exit_code == 1
+    assert result.exit_code == 2
 
 
 def test_help_shows_groups_and_commands(app_with_groups):

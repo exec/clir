@@ -221,3 +221,195 @@ Type-safe validation for command-line args with Pydantic.
 ## 12.6 Tree Output Component (Planned)
 
 Rich tree output for displaying hierarchical data.
+
+---
+
+## 12.7 Repeatable Options
+
+**Status**: Complete ✓
+
+An option that may be passed more than once, with every value collected into a
+list (argparse `action="append"`).
+
+### Implementation
+
+- Added `multiple` flag to `Param` (options only — raises `ValueError` on an argument)
+- `@option(multiple=True)` registers the param; `_add_command_params` wires
+  `action="append"` into argparse
+- `Command._convert_type` converts each list element with the param's `type`
+- Help rendering appends a `...` placeholder to the flag's metavar
+
+### Files Modified
+
+- `clir/core/params.py` - `multiple` attribute + argument guardrail
+- `clir/core/command.py` - `multiple` kwarg on `@option`; per-element conversion
+- `clir/core/app.py` - `action="append"` wiring
+- `clir/help.py` - `...` metavar in option rendering
+
+### API
+
+```python
+from clir import ClirApp, option
+
+app = ClirApp(name="mycli")
+
+@app.command()
+@option("--salvage", multiple=True, default=None, help="Salvage file")
+def assemble(salvage):
+    # mycli assemble --salvage a.jsonl --salvage b.jsonl
+    #   salvage == ["a.jsonl", "b.jsonl"]
+    # mycli assemble
+    #   salvage == None   (default; distinguishes "not passed")
+    ...
+```
+
+Use `default=None` to distinguish "not passed" from "passed zero times". The
+element type comes from `type=` (defaults to `str`) and converts each value.
+
+---
+
+## 12.8 Fixed-Arity (nargs) Options
+
+**Status**: Complete ✓
+
+An option that consumes exactly `N` values at once (argparse `nargs=N`).
+
+### Implementation
+
+- Added `nargs` attribute to `Param` (options only; must be `>= 1`)
+- `@option(nargs=N)` registers the param; `_add_command_params` passes `nargs`
+  to argparse
+- The bound value is an `N`-element list; each element is type-converted
+- `multiple=True` combined with `nargs` yields a list of `N`-element lists
+- Help rendering repeats the metavar `N` times (e.g. `COMPARE COMPARE`)
+
+### Files Modified
+
+- `clir/core/params.py` - `nargs` attribute + validation
+- `clir/core/command.py` - `nargs` kwarg on `@option`
+- `clir/core/app.py` - `nargs` wiring
+- `clir/help.py` - repeated metavar in option rendering
+
+### API
+
+```python
+from clir import ClirApp, option
+
+app = ClirApp(name="mycli")
+
+@app.command()
+@option("--compare", nargs=2, default=None, help="Two models to compare")
+def evaluate(compare):
+    # mycli evaluate --compare modelA modelB
+    #   compare == ["modelA", "modelB"]
+    ...
+```
+
+Passing too few values raises an argparse error and exits non-zero.
+
+---
+
+## 12.9 Dest-Aliasing and Path-Typed Parameters
+
+**Status**: Complete ✓
+
+Two related parameter improvements.
+
+**Dest-aliasing** lets the CLI flag spelling differ from the Python parameter
+name — required when the natural flag name is a Python keyword (`--in`,
+`--class`). **Path support** adds `pathlib.Path` as a first-class param type.
+
+### Implementation
+
+- Added `dest` attribute to `Param`; defaults to `name`. `Command.run` keys
+  params by `dest` for signature binding and value lookup
+- `@option`/`@argument` accept a `dest` kwarg; type inference resolves against
+  `dest` when the signature parameter differs from the flag name
+- argparse: options register with an explicit `dest`; positionals register
+  under `dest` with `metavar` set to the CLI name
+- Added `Path` to `Param.VALID_TYPES` and to `command._TYPE_CONVERTERS`
+- Missing-required-option errors now report the `--flag` spelling, not the dest
+
+### Files Modified
+
+- `clir/core/params.py` - `dest` attribute, `Path` in `VALID_TYPES`
+- `clir/core/command.py` - `dest` kwarg, `dest`-keyed binding, `Path` converter
+- `clir/core/app.py` - explicit argparse `dest`/`metavar`, `--flag` error message
+- `clir/help.py` - flag spelling rendered, not the dest
+
+### API
+
+```python
+from pathlib import Path
+from clir import ClirApp, argument, option
+
+app = ClirApp(name="mycli")
+
+@app.command()
+@option("--in", dest="in_path", help="Input file")     # flag --in -> param in_path
+@option("--out", type=Path, default=None)              # function receives a Path
+@argument("class", dest="class_name")                  # positional, keyword-safe param
+def triage(class_name, in_path, out):
+    ...
+```
+
+---
+
+## 12.10 Literal Brackets in Help Text
+
+**Status**: Complete ✓
+
+Author-supplied description and help prose is plain text, not rich markup.
+Literal square brackets — `[options]`, `[FILE...]`, `[default: x]` — now render
+verbatim instead of being silently swallowed by rich's markup parser.
+
+### Implementation
+
+- `clir/help.py` wraps every author-supplied string (`app.description`,
+  `group.help`, `cmd.help`, `param.help`) and clir's own bracketed usage
+  placeholders (`[command]`, `[options]`) in `rich.markup.escape()` before
+  printing. Only clir's deliberate `[bold]`/`[yellow]` style tags remain
+  live markup.
+
+### Files Modified
+
+- `clir/help.py` - escape author prose and bracketed usage placeholders
+
+### Notes
+
+Markup in help text is therefore opt-out by default — authors who genuinely
+want styled help must pre-style with their own `rich` console. This matches
+the principle that user-provided strings should render literally.
+
+---
+
+## 12.11 Usage Errors Exit With Code 2
+
+**Status**: Complete ✓
+
+Bad CLI input — a missing required argument/option, a value that fails its
+validator, or an unknown command — is a *usage* error, not a runtime crash.
+Such errors now exit with code 2 (matching argparse and POSIX convention) and
+render as a clean one-line message, with no `ValueError:` prefix and no
+"Run with --debug" traceback hint.
+
+### Implementation
+
+- `clir/core/command.py` — `Command.run` raises `UsageError` (exit 2) instead
+  of a bare `ValueError` for missing required params and for the validator
+  "validation failed" case. `_handle_exception` already special-cases
+  `ClirError` (UsageError's base) → styled message + `exc.exit_code`.
+- `clir/core/app.py` — the unknown-command and unknown-subcommand paths, and
+  the "group invoked with no subcommand" path, exit 2 instead of 1. The
+  "did you mean" suggestion is preserved.
+
+### Files Modified
+
+- `clir/core/command.py` - raise `UsageError` for missing args / bad values
+- `clir/core/app.py` - exit 2 on unknown command / missing subcommand
+
+### Notes
+
+Runtime errors from inside a command body still exit 1 (or the `exit_code` of
+a `ClirError` the command raises). Exit 2 is reserved for input the user can
+fix by correcting the command line.

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clir"
-version = "0.1.0"
+version = "0.2.0"
 description = "A modern CLI toolkit for building beautiful terminal applications"
 readme = "README.md"
 license = {text = "MIT"}

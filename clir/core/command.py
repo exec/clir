@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+from pathlib import Path
 from typing import Any, Callable, TypeVar
 
 from clir.core.params import Param, ParamType
 from clir.core.context import Context
+from clir.errors import UsageError
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -16,6 +18,7 @@ _TYPE_CONVERTERS: dict[type, Callable[[str], Any]] = {
     int: lambda v: int(v),
     float: lambda v: float(v),
     bool: lambda v: v.lower() in ("true", "1", "yes"),
+    Path: lambda v: Path(v),
 }
 
 
@@ -43,11 +46,8 @@ class Command:
         options = [p for p in self.params if p.param_type.value == "option"]
         return args + options
 
-    def _convert_type(self, value: str, param: Param) -> Any:
-        """Convert string value to the expected type."""
-        if value is None:
-            return param.default
-
+    def _convert_scalar(self, value: Any, param: Param) -> Any:
+        """Convert a single value to the param's expected type."""
         # Already the right type
         if isinstance(value, param.type):
             return value
@@ -65,14 +65,35 @@ class Command:
         # Unknown type - return as string
         return value
 
+    def _convert_type(self, value: Any, param: Param) -> Any:
+        """Convert a parsed value to the expected type.
+
+        Handles scalars, plus list-valued params (`multiple=True` and/or
+        `nargs`) by converting each element with `param.type`. A `multiple`
+        option combined with `nargs` arrives as a list of lists.
+        """
+        if value is None:
+            return param.default
+
+        if isinstance(value, list):
+            return [
+                self._convert_type(item, param)
+                if isinstance(item, list)
+                else self._convert_scalar(item, param)
+                for item in value
+            ]
+
+        return self._convert_scalar(value, param)
+
     async def run(self, args: dict[str, Any], parent: Context | None = None) -> Any:
         """Run the command with parsed arguments."""
         # Create context
         ctx = Context(self.name, args, parent)
 
-        # Get param order from function signature
+        # Get param order from function signature. Params are keyed by `dest`
+        # (the Python parameter name), which equals `name` unless dest-aliased.
         sig = inspect.signature(self.func)
-        params_by_name = {p.name: p for p in self.params}
+        params_by_name = {p.dest: p for p in self.params}
 
         # Check if function accepts a context parameter
         param_names = list(sig.parameters.keys())
@@ -94,8 +115,10 @@ class Command:
         param_values = []
         missing_required = []
         for param in ordered_params:
-            # Look up by param name, or short name as fallback
-            value = args.get(param.name)
+            # Look up by dest (argparse key), then by flag name, then short name.
+            value = args.get(param.dest)
+            if value is None and param.name != param.dest:
+                value = args.get(param.name)
             if value is None and param.short:
                 short_key = param.short.lstrip('-')
                 value = args.get(short_key)
@@ -103,22 +126,30 @@ class Command:
                 value = param.default
             # Enforce required validation
             if value is None and param.required:
-                missing_required.append(f"--{param.name}" if param.short else param.name)
+                if param.param_type is ParamType.OPTION:
+                    missing_required.append(f"--{param.name.replace('_', '-')}")
+                else:
+                    missing_required.append(param.name)
                 continue
-            # Convert type from string
-            if isinstance(value, str):
+            # Convert type from string (or per-element for list-valued params)
+            if isinstance(value, (str, list)):
                 value = self._convert_type(value, param)
             if param.validator and value is not None:
                 validated = param.validator(value)
                 if validated is None:
-                    raise ValueError(
+                    # Bad CLI input — a usage error, not a runtime crash.
+                    raise UsageError(
                         f"Invalid value for '{param.name}': validation failed"
                     )
                 value = validated
             param_values.append(value)
 
         if missing_required:
-            raise ValueError(f"Missing required argument(s): {', '.join(missing_required)}")
+            # Missing required input is a usage error (exit 2), rendered
+            # cleanly without a traceback hint.
+            raise UsageError(
+                f"Missing required argument(s): {', '.join(missing_required)}"
+            )
 
         # Pass context if wanted (at the end, after other params)
         if wants_context:
@@ -156,8 +187,15 @@ def argument(
     required: bool = False,
     help: str | None = None,
     validator: Callable[[Any], Any] | None = None,
+    dest: str | None = None,
 ) -> Callable[[F], F]:
-    """Decorator to add an argument to a command."""
+    """Decorator to add an argument to a command.
+
+    Args:
+        dest: Python parameter name the value binds to, when it must differ
+            from the argument's CLI name (e.g. a name that is a Python
+            keyword). Defaults to the argument name.
+    """
 
     def decorator(func: F) -> F:
         cmd: Command = getattr(func, "_clir_command", None)
@@ -167,10 +205,11 @@ def argument(
             func._clir_command = cmd  # type: ignore
 
         param_name = name or _infer_param_name(func, len(cmd.params))
-        # Infer type from signature if not provided
+        # Infer type from signature if not provided. With dest-aliasing the
+        # signature parameter is `dest`, not the CLI name.
         inferred_type = type
         if inferred_type is None:
-            inferred_type = _infer_param_type(func, param_name)
+            inferred_type = _infer_param_type(func, dest or param_name)
         param = Param(
             name=param_name,
             param_type=ParamType.ARGUMENT,
@@ -179,6 +218,7 @@ def argument(
             required=required,
             help=help,
             validator=validator,
+            dest=dest,
         )
         cmd.add_param(param)
         return func
@@ -195,8 +235,26 @@ def option(
     required: bool = False,
     help: str | None = None,
     validator: Callable[[Any], Any] | None = None,
+    dest: str | None = None,
+    multiple: bool = False,
+    nargs: int | None = None,
 ) -> Callable[[F], F]:
-    """Decorator to add an option to a command."""
+    """Decorator to add an option to a command.
+
+    Args:
+        dest: Python parameter name the value binds to, when it must differ
+            from the flag spelling (e.g. flag ``--in`` binding to param
+            ``in_path`` because ``in`` is a Python keyword). Defaults to the
+            flag name with dashes converted to underscores.
+        multiple: If True, the option may be passed more than once and every
+            value is collected into a list (argparse ``action="append"``).
+            Use ``default=None`` to distinguish "not passed" from "passed
+            zero times" — an absent multiple option yields ``default``.
+        nargs: If set, the option consumes exactly this many values at once
+            (e.g. ``nargs=2`` for ``--compare A B``). The bound value is a
+            list of that length. Combine with ``multiple=True`` for a
+            list of fixed-length lists.
+    """
 
     def decorator(func: F) -> F:
         cmd: Command = getattr(func, "_clir_command", None)
@@ -212,10 +270,11 @@ def option(
             opt_name = opt_name[1:].replace("-", "_")
 
         param_name = opt_name or _infer_param_name(func, len(cmd.params))
-        # Infer type from signature if not provided
+        # Infer type from signature if not provided. With dest-aliasing the
+        # signature parameter is `dest`, not the flag name.
         inferred_type = type
         if inferred_type is None:
-            inferred_type = _infer_param_type(func, param_name)
+            inferred_type = _infer_param_type(func, dest or param_name)
         param = Param(
             name=param_name,
             param_type=ParamType.OPTION,
@@ -225,6 +284,9 @@ def option(
             help=help,
             short=short,
             validator=validator,
+            dest=dest,
+            multiple=multiple,
+            nargs=nargs,
         )
         cmd.add_param(param)
         return func

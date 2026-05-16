@@ -293,3 +293,97 @@ def test_subcommand_under_group_help_uses_render_help():
     assert "Usage:" in result.output
     assert "migrate" in result.output
     assert "Migrate." in result.output
+
+
+# --- literal-bracket rendering ---------------------------------------------
+# Help/description prose is plain text: literal [..] must render verbatim and
+# not be swallowed as rich markup.
+
+
+def test_app_description_renders_literal_brackets():
+    app = ClirApp(
+        name="myapp",
+        description="Usage: myapp <cmd> [args...] (needs the [extra] package)",
+    )
+    out = _capture_render(app, app_name="myapp")
+    assert "[args...]" in out
+    assert "[extra]" in out
+
+
+def test_app_usage_line_shows_bracketed_placeholders():
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    def hello():
+        """Hi."""
+        pass
+
+    out = _capture_render(app, app_name="myapp")
+    assert "[command]" in out
+    assert "[options]" in out
+
+
+def test_command_help_renders_literal_brackets():
+    app = ClirApp(name="myapp")
+
+    @app.command(help="[scaffold] stub — see file.py")
+    def categorize():
+        pass
+
+    out = _capture_render(app.commands["categorize"], app_name="myapp")
+    assert "[scaffold]" in out
+
+
+def test_command_listing_help_renders_literal_brackets():
+    app = ClirApp(name="myapp")
+
+    @app.command(help="does a thing [default: off]")
+    def run():
+        pass
+
+    out = _capture_render(app, app_name="myapp")
+    assert "[default: off]" in out
+
+
+def test_option_help_renders_literal_brackets():
+    from clir import option
+
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    @option("--mode", help="mode [default: fast]")
+    def run(mode):
+        pass
+
+    out = _capture_render(app.commands["run"], app_name="myapp")
+    assert "[default: fast]" in out
+
+
+def test_command_options_summary_shows_bracketed_placeholder():
+    from clir import option
+
+    app = ClirApp(name="myapp")
+
+    @app.command()
+    @option("--flag", help="a flag")
+    def run(flag):
+        pass
+
+    out = _capture_render(app.commands["run"], app_name="myapp")
+    assert "[options]" in out
+
+
+def test_group_help_renders_literal_brackets():
+    app = ClirApp(name="myapp")
+
+    @app.group(help="manage things [advanced]")
+    def db():
+        pass
+
+    @db.command()
+    def migrate():
+        """Migrate."""
+        pass
+
+    out = _capture_render(app.commands["db"], app_name="myapp")
+    assert "[advanced]" in out

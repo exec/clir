@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from rich.markup import escape
 from rich.table import Table
 
 from clir.output.style import get_console
@@ -57,11 +58,14 @@ def render_help(
 
 def _render_app(app: "ClirApp", *, app_name: str, search: str | None) -> None:
     console = get_console()
-    console.print(f"[bold]Usage:[/bold] {app_name} [command] [options]")
+    # The [command]/[options] literals are escaped so rich treats them as text,
+    # not markup; only the [bold] tags are real markup.
+    console.print(f"[bold]Usage:[/bold] {escape(f'{app_name} [command] [options]')}")
     console.print()
 
     if app.description:
-        console.print(app.description)
+        # Author-supplied prose: render literally so brackets aren't eaten.
+        console.print(escape(app.description))
         console.print()
 
     commands = app.commands
@@ -73,7 +77,7 @@ def _render_app(app: "ClirApp", *, app_name: str, search: str | None) -> None:
             if q in name.lower() or (cmd.help and q in cmd.help.lower())
         }
         if not commands:
-            console.print(f"[yellow]No commands found matching '{search}'[/yellow]")
+            console.print(f"[yellow]No commands found matching '{escape(search)}'[/yellow]")
             console.print()
             return
 
@@ -83,7 +87,8 @@ def _render_app(app: "ClirApp", *, app_name: str, search: str | None) -> None:
         table.add_column("name", style="cyan")
         table.add_column("help", style="dim")
         for name, cmd in commands.items():
-            table.add_row(f"  {name}", cmd.help or "")
+            # cmd.help is author prose — escape so brackets render literally.
+            table.add_row(f"  {name}", escape(cmd.help or ""))
         console.print(table)
         console.print()
         console.print(f"Run '{app_name} <command> --help' for more info on a command.")
@@ -92,11 +97,12 @@ def _render_app(app: "ClirApp", *, app_name: str, search: str | None) -> None:
 def _render_group(group: "Group", *, app_name: str, parent_path: str) -> None:
     console = get_console()
     breadcrumb = " ".join(p for p in (app_name, parent_path, group.name) if p)
-    console.print(f"[bold]Usage:[/bold] {breadcrumb} [command] [options]")
+    console.print(f"[bold]Usage:[/bold] {escape(f'{breadcrumb} [command] [options]')}")
     console.print()
 
     if group.help:
-        console.print(group.help)
+        # Author-supplied prose: render literally.
+        console.print(escape(group.help))
         console.print()
 
     if group.commands:
@@ -105,7 +111,7 @@ def _render_group(group: "Group", *, app_name: str, parent_path: str) -> None:
         table.add_column("name", style="cyan")
         table.add_column("help", style="dim")
         for name, cmd in group.commands.items():
-            table.add_row(f"  {name}", cmd.help or "")
+            table.add_row(f"  {name}", escape(cmd.help or ""))
         console.print(table)
         console.print()
         console.print(f"Run '{breadcrumb} <command> --help' for more info on a command.")
@@ -122,11 +128,13 @@ def _render_command(cmd: "Command", *, app_name: str, parent_path: str) -> None:
     opts_summary = "[options]" if opts else ""
     parts = [breadcrumb, arg_summary, opts_summary]
     usage_line = " ".join(p for p in parts if p)
-    console.print(f"[bold]Usage:[/bold] {usage_line}")
+    # Escape so the [options] literal renders as text, not markup.
+    console.print(f"[bold]Usage:[/bold] {escape(usage_line)}")
     console.print()
 
     if cmd.help:
-        console.print(cmd.help)
+        # Author-supplied prose: render literally.
+        console.print(escape(cmd.help))
         console.print()
 
     if args:
@@ -135,7 +143,7 @@ def _render_command(cmd: "Command", *, app_name: str, parent_path: str) -> None:
         table.add_column("name", style="cyan")
         table.add_column("help", style="dim")
         for p in args:
-            table.add_row(f"  {p.name}", p.help or "")
+            table.add_row(f"  {p.name}", escape(p.help or ""))
         console.print(table)
         console.print()
 
@@ -148,6 +156,14 @@ def _render_command(cmd: "Command", *, app_name: str, parent_path: str) -> None:
             flag = f"--{p.name.replace('_', '-')}"
             if p.short:
                 flag = f"{p.short.lstrip('-')}, {flag}" if not p.short.startswith("-") else f"{p.short}, {flag}"
-            table.add_row(f"  {flag}", p.help or "")
+            # Show value placeholders for non-bool options: one metavar per
+            # value for nargs, a trailing "..." for repeatable options.
+            if p.type is not bool:
+                metavar = p.name.replace("-", "_").upper()
+                count = p.nargs if p.nargs is not None else 1
+                flag += " " + " ".join([metavar] * count)
+                if p.multiple:
+                    flag += " ..."
+            table.add_row(f"  {flag}", escape(p.help or ""))
         console.print(table)
         console.print()

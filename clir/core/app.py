@@ -351,7 +351,8 @@ class ClirApp:
                 error_msg += f". Did you mean '{suggestion}'?"
             print(error_msg, file=sys.stderr)
             self._print_help()
-            sys.exit(1)
+            # Unknown command is a usage error: exit 2, matching argparse.
+            sys.exit(2)
 
     async def _run_group_command(self, group: Group, argv: list[str], parent_path: str = "") -> None:
         """Recursively run a group command, handling nested groups (async).
@@ -370,18 +371,19 @@ class ClirApp:
             return
 
         if not argv:
-            # No more args, show help for this group
+            # No subcommand given for the group — a usage error (exit 2).
             print(f"Run '{self.name} {group.name} --help' for available commands.", file=sys.stderr)
-            sys.exit(1)
+            sys.exit(2)
 
         # Look up the next arg as a subcommand within this group
         subcommand_name = argv[0]
         subcmd = group.commands.get(subcommand_name)
 
         if not subcmd:
+            # Unknown subcommand is a usage error: exit 2, matching argparse.
             print(f"Error: Unknown command '{subcommand_name}'", file=sys.stderr)
             print(f"Run '{self.name} {group.name} --help' for available commands.")
-            sys.exit(1)
+            sys.exit(2)
 
         if isinstance(subcmd, Group):
             # Nested group - recursively handle
@@ -481,11 +483,15 @@ class ClirApp:
 
         # Add arguments (potentially reversed)
         for param in (reversed(args_params) if reverse_args else args_params):
+            # argparse derives a positional's dest from its name string. To
+            # bind a positional to a different Python parameter name, register
+            # it under `dest` and show `name` via metavar.
             parser.add_argument(
-                param.name,
+                param.dest,
                 type=param.type,
                 default=param.default,
                 help=param.help,
+                metavar=param.name if param.name != param.dest else None,
             )
 
         # Add options
@@ -495,22 +501,22 @@ class ClirApp:
                 short = param.short.lstrip("-")
                 args.append(f"-{short}")
             args.append(f"--{param.name.replace('_', '-')}")
+            # argparse derives an option's dest from its long flag; override it
+            # so the value binds to the Python parameter name (dest-aliasing).
+            kwargs: dict[str, Any] = {"help": param.help, "dest": param.dest}
             if param.type is bool:
-                if param.default:
-                    parser.add_argument(
-                        *args, action="store_false", help=param.help
-                    )
-                else:
-                    parser.add_argument(
-                        *args, action="store_true", help=param.help
-                    )
+                kwargs["action"] = "store_false" if param.default else "store_true"
+                parser.add_argument(*args, **kwargs)
             else:
-                parser.add_argument(
-                    *args,
-                    type=param.type,
-                    default=param.default,
-                    help=param.help,
-                )
+                kwargs["type"] = param.type
+                kwargs["default"] = param.default
+                if param.multiple:
+                    # Repeatable option: each occurrence appends to a list.
+                    kwargs["action"] = "append"
+                if param.nargs is not None:
+                    # Fixed-arity option: consume exactly N values per use.
+                    kwargs["nargs"] = param.nargs
+                parser.add_argument(*args, **kwargs)
 
     def _populate_subparsers(
         self,

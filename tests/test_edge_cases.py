@@ -205,4 +205,5 @@ class TestErrorPaths:
         # 0 fails the validator (not > 0); command should error, not run with None
         result = runner.invoke(["positive", "0"])
         assert not result.success
-        assert result.exit_code == 1
+        # Bad CLI input is a UsageError -> exit 2 (matches argparse convention)
+        assert result.exit_code == 2

@@ -128,3 +128,108 @@ def test_clir_error_is_re_exported_from_top_level():
     assert hasattr(clir, "UsageError")
     assert clir.ClirError is ClirError
     assert clir.UsageError is UsageError
+
+
+"""Usage-error routing: missing args, bad values, and unknown commands all
+surface as UsageError-equivalent (clean message, exit 2, no traceback hint)."""
+
+from clir import argument, option
+
+
+def test_missing_required_option_is_usage_error():
+    app = ClirApp(name="x")
+
+    @app.command()
+    @option("--project", required=True)
+    def synthesize(project):
+        pass
+
+    result = CliRunner(app).invoke(["synthesize"])
+    assert result.exit_code == 2
+    assert "Missing required argument(s): --project" in result.error
+    # Rendered cleanly: no bare exception class name, no debug-traceback hint.
+    assert "ValueError" not in result.error
+    assert "--debug" not in result.error
+
+
+def test_missing_required_argument_is_usage_error():
+    app = ClirApp(name="x")
+
+    @app.command()
+    @argument("name", required=True)
+    @option("--unused", default="x")
+    def pick(name, unused):
+        pass
+
+    # An argument with no value and no default reaches Command.run as required.
+    result = CliRunner(app).invoke(["pick"])
+    assert result.exit_code == 2
+
+
+def test_validator_failure_is_usage_error():
+    app = ClirApp(name="x")
+
+    @app.command()
+    @argument("num", type=int, validator=lambda v: v if v > 0 else None)
+    def positive(num):
+        pass
+
+    result = CliRunner(app).invoke(["positive", "0"])
+    assert result.exit_code == 2
+    assert "validation failed" in result.error
+    assert "ValueError" not in result.error
+    assert "--debug" not in result.error
+
+
+def test_unknown_command_exits_2():
+    app = ClirApp(name="x")
+
+    @app.command()
+    def hello():
+        pass
+
+    result = CliRunner(app).invoke(["nonsense"])
+    assert result.exit_code == 2
+    assert "Unknown command" in result.error
+
+
+def test_unknown_command_keeps_did_you_mean_suggestion():
+    app = ClirApp(name="x")
+
+    @app.command()
+    def status():
+        pass
+
+    result = CliRunner(app).invoke(["staus"])  # typo
+    assert result.exit_code == 2
+    assert "Did you mean" in result.error
+
+
+def test_unknown_group_subcommand_exits_2():
+    app = ClirApp(name="x")
+
+    @app.group()
+    def db():
+        """DB commands."""
+
+    @db.command()
+    def migrate():
+        pass
+
+    result = CliRunner(app).invoke(["db", "nonsense"])
+    assert result.exit_code == 2
+
+
+def test_group_with_no_subcommand_exits_2():
+    app = ClirApp(name="x")
+
+    @app.group()
+    def db():
+        """DB commands."""
+
+    @db.command()
+    def migrate():
+        pass
+
+    result = CliRunner(app).invoke(["db"])
+    assert result.exit_code == 2
