@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyclir"
-version = "0.2.1"
+version = "0.2.2"
 description = "A modern CLI toolkit for building beautiful terminal applications"
 readme = "README.md"
 license = {text = "MIT"}
