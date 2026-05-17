@@ -1,5 +1,7 @@
 """Clir - A modern CLI toolkit for building beautiful terminal applications."""
 
+from importlib.metadata import PackageNotFoundError, version
+
 from clir.core.app import ClirApp, main
 from clir.core.command import command, argument, option
 from clir.core.group import group
@@ -22,7 +24,14 @@ from clir.validation import CLIValidator, validator
 from clir.errors import ClirError, UsageError
 from pydantic import BaseModel, Field, ValidationError
 
-__version__ = "0.2.1"
+# Version comes from the installed package metadata, which setuptools reads
+# from pyproject.toml — the single source of truth. The publish workflow also
+# asserts the release tag matches it. Falls back when run from an uninstalled
+# source tree.
+try:
+    __version__ = version("pyclir")
+except PackageNotFoundError:  # pragma: no cover
+    __version__ = "0.0.0+unknown"
 
 __all__ = [
     # Core
