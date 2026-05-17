@@ -48,9 +48,14 @@ class Command:
 
     def _convert_scalar(self, value: Any, param: Param) -> Any:
         """Convert a single value to the param's expected type."""
-        # Already the right type
-        if isinstance(value, param.type):
-            return value
+        # Already the right type. `isinstance` rejects parameterized generics
+        # (e.g. list[int]) with a TypeError, so guard against those: a generic
+        # annotation describes the container, and per-element conversion is
+        # handled by the list branch in `_convert_type` using `param.type`.
+        param_type = param.type
+        if not (hasattr(param_type, "__origin__") or hasattr(param_type, "__args__")):
+            if isinstance(value, param_type):
+                return value
 
         # Use dictionary lookup for performance
         converter = _TYPE_CONVERTERS.get(param.type)
@@ -171,6 +176,16 @@ def command(name: str | None = None, help: str | None = None) -> Callable[[F], C
     """Decorator to register a function as a CLI command."""
 
     def decorator(func: F) -> Command:
+        # When @argument/@option are stacked below @command(), they run first
+        # and stash a Command on the function. Reuse it so its params are kept;
+        # creating a fresh Command here would silently discard them.
+        existing_cmd: Command | None = getattr(func, "_clir_command", None)
+        if existing_cmd is not None:
+            if name:
+                existing_cmd.name = name
+            if help:
+                existing_cmd.help = help
+            return existing_cmd  # type: ignore
         cmd = Command(func, name=name, help=help)
         # Attach command to function for later retrieval
         func._clir_command = cmd  # type: ignore

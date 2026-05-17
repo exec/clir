@@ -104,8 +104,16 @@ def glob_files(
         full_pattern = str(base / pattern) if not os.path.isabs(pattern) else pattern
 
         if recursive and "**" not in pattern:
-            # Add ** for recursive search
-            full_pattern = full_pattern.replace("*", "**", 1) if full_pattern.startswith("*") else full_pattern
+            # Recurse into subdirectories: insert a `**/` component before the
+            # final path segment so e.g. `src/*.py` also matches `src/a/b.py`.
+            # `glob` only treats `**` as recursive when it is a whole path
+            # component, so the previous `*` -> `**` substitution did nothing
+            # useful (it produced patterns like `**.py`).
+            head, sep, tail = full_pattern.rpartition(os.sep)
+            if sep:
+                full_pattern = f"{head}{sep}**{sep}{tail}"
+            else:
+                full_pattern = f"**{os.sep}{full_pattern}"
 
         matches = glob_module.glob(full_pattern, recursive=recursive)
         all_files.extend(matches)
