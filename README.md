@@ -15,8 +15,11 @@ A modern CLI toolkit for building beautiful terminal applications in Python.
 ## Installation
 
 ```bash
-pip install clir
+pip install pyclir
 ```
+
+`pyclir` is the PyPI distribution name; the import package is `clir`
+(`import clir`). The name `clir` was already taken on PyPI.
 
 ## Quick Start
 

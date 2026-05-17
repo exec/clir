@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "clir"
-version = "0.2.0"
+name = "pyclir"
+version = "0.2.1"
 description = "A modern CLI toolkit for building beautiful terminal applications"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Dylan", email = "dylan@example.com"}
+    {name = "Dylan Hart", email = "execxd@icloud.com"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
