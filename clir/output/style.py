@@ -179,29 +179,6 @@ def get_recommended_theme() -> str:
 
 def auto_theme() -> None:
     """Automatically set theme based on terminal background."""
-    theme = get_recommended_theme()
-    set_theme(theme)
-
-
-# Dark/Light theme recommendations
-_DARK_THEMES = ["monokai", "dracula", "nord", "synthwave", "one-dark", "matrix", "gruvbox"]
-_LIGHT_THEMES = ["default", "ocean", "sunset", "bubblegum", "pastel", "material", "catppuccin"]
-
-
-def get_recommended_theme() -> str:
-    """Get recommended theme based on terminal background.
-
-    Returns:
-        Theme name
-    """
-    scheme = detect_terminal_background()
-    if scheme == "dark":
-        return "monokai"
-    return "default"
-
-
-def auto_theme() -> None:
-    """Automatically set theme based on terminal background."""
     set_theme(get_recommended_theme())
 
 
