@@ -2,6 +2,7 @@
 
 import functools
 import rich.box as _rich_box
+from pathlib import Path
 from rich.table import Table as RichTable
 from typing import Any, Sequence
 
@@ -20,6 +21,12 @@ def _to_string(value: Any) -> str:
         return _to_string_cached(value)
     except TypeError:
         return str(value)
+
+
+def _plain(value: Any) -> str:
+    """Flatten a header or cell renderable to plain text."""
+    plain = getattr(value, "plain", None)
+    return plain if isinstance(plain, str) else _to_string(value)
 
 
 class Table:
@@ -111,109 +118,75 @@ class Table:
         """Access the underlying Rich Table object."""
         return self._table
 
-    def to_csv(self, path: str | None = None) -> str:
+    def _headers(self) -> list[str]:
+        """Column headers as plain strings."""
+        return [_plain(col.header) for col in self._table.columns]
+
+    def _row_values(self) -> list[list[str]]:
+        """Row data as plain strings.
+
+        Rich stores cells per column rather than per row (``Table.rows`` holds
+        only per-row styling), so the columns are transposed back into rows.
+        """
+        columns = self._table.columns
+        if not columns:
+            return []
+        return [
+            [_plain(cell) for cell in row]
+            for row in zip(*(list(col.cells) for col in columns))
+        ]
+
+    def to_csv(self, path: str | Path | None = None, delimiter: str = ",") -> str:
         """Export table to CSV format.
 
         Args:
-            path: Optional file path to write to
-
-        Returns:
-            CSV string
-        """
-        import csv
-        import io
-
-        output = io.StringIO()
-        headers = [str(col.header) for col in self._table.columns]
-        writer = csv.writer(output)
-        writer.writerow(headers)
-
-        # Get row data from table
-        for row in self._table.rows:
-            row_data = [str(cell) for cell in row.cells]
-            writer.writerow(row_data)
-
-        csv_content = output.getvalue()
-        if path:
-            with open(path, 'w', encoding='utf-8') as f:
-                f.write(csv_content)
-        return csv_content
-
-    def to_json(self, path: str | None = None) -> str:
-        """Export table to JSON format.
-
-        Args:
-            path: Optional file path to write to
-
-        Returns:
-            JSON string
-        """
-        import json
-
-        headers = [col.header for col in self._table.columns]
-        rows = []
-
-        for row in self._table.rows:
-            row_dict = {}
-            for i, cell in enumerate(row.cells):
-                if i < len(headers):
-                    row_dict[headers[i]] = str(cell)
-            rows.append(row_dict)
-
-        data = {
-            "columns": headers,
-            "rows": rows,
-        }
-
-        json_content = json.dumps(data, indent=2)
-        if path:
-            with open(path, 'w', encoding='utf-8') as f:
-                f.write(json_content)
-        return json_content
-
-    def to_csv(self, delimiter: str = ",") -> str:
-        """Export table to CSV format.
-
-        Args:
+            path: Optional file path to write the CSV to
             delimiter: CSV delimiter
 
         Returns:
             CSV string
         """
-        import io
         import csv
+        import io
 
         output = io.StringIO()
-        writer = csv.writer(output, delimiter=delimiter)
+        writer = csv.writer(output, delimiter=delimiter, lineterminator="\r\n")
+        writer.writerow(self._headers())
+        writer.writerows(self._row_values())
 
-        # Write header
-        if self._table.columns:
-            writer.writerow([col.header.plain for col in self._table.columns])
+        csv_content = output.getvalue()
+        if path is not None:
+            # newline="" keeps the CSV line terminators exactly as written
+            # instead of letting the text layer rewrite them.
+            Path(path).write_text(csv_content, encoding="utf-8", newline="")
+        return csv_content
 
-        # Write rows
-        for row in self._table.rows:
-            writer.writerow([cell.plain for cell in row.cells])
-
-        return output.getvalue()
-
-    def to_json(self) -> str:
+    def to_json(self, path: str | Path | None = None, indent: int = 2) -> str:
         """Export table to JSON format.
+
+        The payload is ``{"columns": [...], "rows": [{column: value}, ...]}``.
+
+        Args:
+            path: Optional file path to write the JSON to
+            indent: Indentation passed to ``json.dumps``
 
         Returns:
             JSON string
         """
         import json
 
+        headers = self._headers()
         data = {
-            "columns": [col.header.plain for col in self._table.columns],
-            "rows": [
-                [cell.plain for cell in row.cells]
-                for row in self._table.rows
-            ]
+            "columns": headers,
+            "rows": [dict(zip(headers, row)) for row in self._row_values()],
         }
-        return json.dumps(data, indent=2)
 
-    def export(self, path: str, format: str = "csv") -> None:
+        json_content = json.dumps(data, indent=indent)
+        if path is not None:
+            Path(path).write_text(json_content, encoding="utf-8")
+        return json_content
+
+    def export(self, path: str | Path, format: str = "csv") -> None:
         """Export table to file.
 
         Args:
@@ -221,11 +194,8 @@ class Table:
             format: Format ('csv' or 'json')
         """
         if format == "csv":
-            content = self.to_csv()
+            self.to_csv(path=path)
         elif format == "json":
-            content = self.to_json()
+            self.to_json(path=path)
         else:
             raise ValueError(f"Unknown format: {format}")
-
-        from pathlib import Path
-        Path(path).write_text(content, encoding="utf-8")

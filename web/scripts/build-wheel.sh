@@ -22,7 +22,7 @@ python -m pip install --upgrade build >/dev/null
 rm -rf dist/
 python -m build --wheel >/dev/null
 
-WHEEL=$(ls dist/clir-*.whl | head -1)
+WHEEL=$(ls dist/pyclir-*.whl 2>/dev/null | head -1)
 if [[ -z "$WHEEL" ]]; then
   echo "Error: build did not produce a wheel"
   exit 1
@@ -30,7 +30,7 @@ fi
 
 WHEEL_DIR="$WEB_DIR/public/wheels"
 mkdir -p "$WHEEL_DIR"
-rm -f "$WHEEL_DIR"/clir-*.whl
+rm -f "$WHEEL_DIR"/clir-*.whl "$WHEEL_DIR"/pyclir-*.whl
 cp "$WHEEL" "$WHEEL_DIR/"
 echo "Wheel: $WHEEL_DIR/$(basename "$WHEEL")"
 

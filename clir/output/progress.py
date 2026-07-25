@@ -1,5 +1,7 @@
 """Progress bar utilities."""
 
+import sys
+
 from rich.progress import SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, track
 from typing import Any, Iterable
 
@@ -121,7 +123,7 @@ def ansi_progress(
     else:
         percent = min(100, max(0, int(current / total * 100)))
 
-    filled = int(width * current / total) if total > 0 else 0
+    filled = min(width, max(0, int(width * current / total))) if total > 0 else 0
     bar = "█" * filled + "░" * (width - filled)
 
     if show_percentage:
@@ -146,61 +148,7 @@ def print_ansi_progress(
         prefix: Prefix text
         show_percentage: Whether to show percentage
     """
-    import sys
     bar = ansi_progress(current, total, width, prefix, show_percentage)
-    sys.stdout.write(f"\r{bar}")
-    sys.stdout.flush()
-    if current >= total:
-        sys.stdout.write("\n")
-        sys.stdout.flush()
-
-
-import sys
-
-
-def ansi_progress(
-    current: int,
-    total: int,
-    width: int = 40,
-    prefix: str = "",
-) -> str:
-    """Generate a simple ANSI progress bar string.
-
-    Args:
-        current: Current progress value
-        total: Total value
-        width: Width of the progress bar
-        prefix: Prefix text
-
-    Returns:
-        Formatted progress bar string
-    """
-    if total <= 0:
-        percent = 0
-    else:
-        percent = min(100, max(0, int(current / total * 100)))
-
-    filled = int(width * current / total) if total > 0 else 0
-    bar = "=" * filled + "-" * (width - filled)
-
-    return f"{prefix}[{bar}] {percent}%"
-
-
-def print_ansi_progress(
-    current: int,
-    total: int,
-    width: int = 40,
-    prefix: str = "",
-) -> None:
-    """Print an ANSI progress bar (overwrites current line).
-
-    Args:
-        current: Current progress value
-        total: Total value
-        width: Width of the progress bar
-        prefix: Prefix text
-    """
-    bar = ansi_progress(current, total, width, prefix)
     sys.stdout.write(f"\r{bar}")
     sys.stdout.flush()
     if current >= total:

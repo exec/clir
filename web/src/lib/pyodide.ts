@@ -63,7 +63,7 @@ export async function getPyodide(): Promise<PyodideAPI> {
       wheelFilename = first;
     } catch {
       // Fallback: try a known-pattern fetch.
-      const candidate = "clir-0.1.0-py3-none-any.whl";
+      const candidate = "pyclir-0.2.2-py3-none-any.whl";
       const head = await fetch(`${wheelDir}${candidate}`, { method: "HEAD" });
       if (!head.ok) throw new Error("clir wheel not found in /wheels/");
       wheelFilename = candidate;
