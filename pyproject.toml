@@ -29,11 +29,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# clir.config imports yaml / tomli / tomli_w behind try-except guards, so they
+# stay optional — but they have to be declarable, or `pip install pyclir` gives
+# you a config module that can only ever read JSON.
+config = [
+    "pyyaml>=6.0",
+    # clir.config imports `tomli` by name on every Python version (it does not
+    # fall back to the 3.11+ stdlib tomllib), so this is not version-gated.
+    "tomli>=2.0.0",
+    "tomli_w>=1.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
+    "pyclir[config]",
 ]
 
 [project.scripts]
