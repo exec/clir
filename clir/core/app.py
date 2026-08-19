@@ -304,9 +304,16 @@ class ClirApp:
             self._print_help(self._search)
             return
 
-        if not argv and self._default_command:
-            # Run default command with no args
-            await self._run_command(self._default_command, {})
+        if self._default_command and (not argv or argv[0].startswith("-")):
+            if argv and argv[0] in ("--help", "-h"):
+                from clir.help import render_help
+                render_help(self._default_command, app_name=self.name, as_root=True)
+                return
+            parser = argparse.ArgumentParser(prog=self.name, add_help=False)
+            self._add_command_params(parser, self._default_command, reverse_args=True)
+            await self._run_command(
+                self._default_command, vars(parser.parse_args(argv))
+            )
             return
 
         if not argv:

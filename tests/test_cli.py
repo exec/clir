@@ -111,6 +111,22 @@ def test_no_args_shows_help(app):
     assert "Commands:" in result.output or "Usage:" in result.output or result.exit_code == 0
 
 
+def test_default_command_accepts_root_options():
+    """Default command options parse without an explicit command name."""
+    app = ClirApp(name="test")
+
+    @app.command()
+    @option("--continue", "-c", dest="continue_", default=False)
+    def main(continue_: bool):
+        print(continue_)
+
+    app.default(main)
+    runner = CliRunner(app)
+
+    assert runner.invoke(["--continue"]).output.strip() == "True"
+    assert "Usage: test [options]" in runner.invoke(["--help"]).output
+
+
 def test_required_argument():
     """Test that required arguments are enforced."""
     app = ClirApp(name="test")

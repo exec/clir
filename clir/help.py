@@ -25,6 +25,7 @@ def render_help(
     app_name: str,
     parent_path: str = "",
     search: str | None = None,
+    as_root: bool = False,
 ) -> None:
     """Render help for the given target to the stdout console.
 
@@ -48,7 +49,9 @@ def render_help(
         return
 
     if isinstance(target, Command):
-        _render_command(target, app_name=app_name, parent_path=parent_path)
+        _render_command(
+            target, app_name=app_name, parent_path=parent_path, as_root=as_root
+        )
         return
 
     raise NotImplementedError(
@@ -117,9 +120,13 @@ def _render_group(group: "Group", *, app_name: str, parent_path: str) -> None:
         console.print(f"Run '{breadcrumb} <command> --help' for more info on a command.")
 
 
-def _render_command(cmd: "Command", *, app_name: str, parent_path: str) -> None:
+def _render_command(
+    cmd: "Command", *, app_name: str, parent_path: str, as_root: bool = False
+) -> None:
     console = get_console()
-    breadcrumb = " ".join(p for p in (app_name, parent_path, cmd.name) if p)
+    breadcrumb = " ".join(
+        p for p in (app_name, parent_path, None if as_root else cmd.name) if p
+    )
 
     args = [p for p in cmd.params if p.param_type.value == "argument"]
     opts = [p for p in cmd.params if p.param_type.value == "option"]
