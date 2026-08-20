@@ -117,7 +117,7 @@ class ClirApp:
     # Global flags that only work at the start (before command)
     _GLOBAL_FLAGS_START = {"--quiet", "-q", "--verbose", "-v", "--debug", "-d"}
     # Global flags that can appear anywhere (output format flags)
-    _GLOBAL_FLAGS_ANYWHERE = {"--json", "-j", "--pretty", "-p"}
+    _GLOBAL_FLAGS_ANYWHERE = {"--json", "-j", "--pretty"}
     # All global flags
     _GLOBAL_FLAGS = _GLOBAL_FLAGS_START | _GLOBAL_FLAGS_ANYWHERE
 
@@ -171,7 +171,7 @@ class ClirApp:
                     self._verbose = True
                 elif arg == "--json" or arg == "-j":
                     self._json_mode = True
-                elif arg == "--pretty" or arg == "-p":
+                elif arg == "--pretty":
                     self._pretty = True
                 # Skip adding to new_argv (consume the flag)
             elif arg.startswith("--search="):
@@ -186,7 +186,7 @@ class ClirApp:
         for arg in post_command:
             if arg == "--json" or arg == "-j":
                 self._json_mode = True
-            elif arg == "--pretty" or arg == "-p":
+            elif arg == "--pretty":
                 self._pretty = True
             else:
                 new_argv.append(arg)

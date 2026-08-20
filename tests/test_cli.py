@@ -127,6 +127,19 @@ def test_default_command_accepts_root_options():
     assert "Usage: test [options]" in runner.invoke(["--help"]).output
 
 
+def test_default_command_can_use_short_p():
+    """Applications may own -p; pretty remains available as --pretty."""
+    app = ClirApp(name="test")
+
+    @app.command()
+    @option("--print", "-p", dest="prompt", type=str, default=None)
+    def main(prompt: str | None):
+        print(prompt)
+
+    app.default(main)
+    assert CliRunner(app).invoke(["-p", "hello"]).output.strip() == "hello"
+
+
 def test_required_argument():
     """Test that required arguments are enforced."""
     app = ClirApp(name="test")
